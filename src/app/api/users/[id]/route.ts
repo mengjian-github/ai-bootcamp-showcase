@@ -30,12 +30,12 @@ export async function PUT(
     }
 
     const body = await request.json()
-    const { nickname, role, email } = body
+    const { nickname, role, skillLevel, email } = body
 
     // 验证输入
-    if (!nickname || !role) {
+    if (!nickname || !role || !skillLevel) {
       return NextResponse.json(
-        { message: '昵称和身份不能为空' },
+        { message: '昵称、身份和技术水平不能为空' },
         { status: 400 }
       )
     }
@@ -67,6 +67,7 @@ export async function PUT(
       data: {
         nickname,
         role,
+        skillLevel,
         email: email || null
       },
       select: {
@@ -74,6 +75,7 @@ export async function PUT(
         nickname: true,
         planetNumber: true,
         role: true,
+        skillLevel: true,
         email: true,
         avatar: true
       }

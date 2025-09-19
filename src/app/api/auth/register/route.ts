@@ -6,10 +6,10 @@ import jwt from 'jsonwebtoken'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { nickname, planetNumber, role, email, password } = body
+    const { nickname, planetNumber, role, skillLevel, email, password } = body
 
     // 检查必填字段
-    if (!nickname || !planetNumber || !role || !password) {
+    if (!nickname || !planetNumber || !role || !skillLevel || !password) {
       return NextResponse.json(
         { message: '请填写所有必填字段' },
         { status: 400 }
@@ -51,6 +51,7 @@ export async function POST(request: NextRequest) {
         nickname,
         planetNumber,
         role,
+        skillLevel,
         email: email || null,
         password: hashedPassword
       },
@@ -59,6 +60,7 @@ export async function POST(request: NextRequest) {
         nickname: true,
         planetNumber: true,
         role: true,
+        skillLevel: true,
         email: true,
         avatar: true,
         createdAt: true

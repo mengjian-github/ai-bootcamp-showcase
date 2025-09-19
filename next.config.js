@@ -4,8 +4,12 @@ const nextConfig = {
     appDir: true,
   },
   images: {
-    domains: ['localhost'],
-    unoptimized: true, // 允许本地图片不优化
+    domains: ['localhost', 'supabase.co', 'your-project.supabase.co'],
+    unoptimized: true,
+  },
+  env: {
+    NEXTAUTH_URL: process.env.NEXTAUTH_URL,
+    NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
   },
   async rewrites() {
     return [

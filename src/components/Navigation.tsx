@@ -74,21 +74,23 @@ export default function Navigation() {
   }
 
   return (
-    <motion.nav
-      initial={{ y: -100, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.6, ease: "easeOut" }}
-      className="bg-white/95 backdrop-blur-md shadow-lg border-b border-white/20 sticky top-0 z-50"
-    >
+    <nav className="bg-white/95 backdrop-blur-md shadow-lg border-b border-white/20 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
+        <div className="flex justify-between h-20">
           <div className="flex items-center">
             <motion.a
               href="/"
               whileHover={{ scale: 1.05 }}
-              className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent hover:from-blue-700 hover:to-purple-700 transition-all duration-300 cursor-pointer"
+              className="flex items-center space-x-3 cursor-pointer"
             >
-              🚀 AI编程训练营
+              <img
+                src="/logo.png"
+                alt="AI编程训练营"
+                className="h-16 w-auto object-contain max-w-32"
+              />
+              <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent hover:from-blue-700 hover:to-purple-700 transition-all duration-300">
+                AI编程训练营
+              </span>
             </motion.a>
           </div>
 
@@ -212,6 +214,6 @@ export default function Navigation() {
           />
         )}
       </AnimatePresence>
-    </motion.nav>
+    </nav>
   )
 }

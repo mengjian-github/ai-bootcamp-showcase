@@ -29,6 +29,7 @@ interface Project {
     nickname: string
     planetNumber: string
     role: string
+    skillLevel: string
     avatar: string | null
   }
   bootcamp: {
@@ -57,9 +58,10 @@ export default function Home() {
     try {
       const response = await fetch('/api/bootcamps')
       const data = await response.json()
-      setBootcamps(data)
+      setBootcamps(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error('Error fetching bootcamps:', error)
+      setBootcamps([])
     }
   }
 
@@ -75,9 +77,10 @@ export default function Home() {
 
       const response = await fetch('/api/projects', { headers })
       const data = await response.json()
-      setProjects(data)
+      setProjects(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error('Error fetching projects:', error)
+      setProjects([])
     } finally {
       setLoading(false)
     }
@@ -128,8 +131,8 @@ export default function Home() {
   }
 
   const filteredProjects = selectedBootcamp === 'all'
-    ? projects
-    : projects.filter(p => p.bootcamp.id === selectedBootcamp)
+    ? (Array.isArray(projects) ? projects : [])
+    : (Array.isArray(projects) ? projects.filter(p => p.bootcamp.id === selectedBootcamp) : [])
 
   // 分页逻辑
   const totalPages = Math.ceil(filteredProjects.length / projectsPerPage)
@@ -458,14 +461,25 @@ export default function Home() {
                       <div className="text-xs text-gray-500">星球编号: {project.author.planetNumber}</div>
                     </div>
                   </div>
-                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium tag-role ${project.author.role}`}>
-                    {project.author.role === 'COACH' && '🎯 教练'}
-                    {project.author.role === 'ACTIONIST' && '⚡ 行动家'}
-                    {project.author.role === 'MEMBER' && '👥 圈友'}
-                    {project.author.role === 'VOLUNTEER' && '🤝 志愿者'}
-                    {project.author.role === 'STAFF' && '🛠️ 工作人员'}
-                    {project.author.role === 'ADMIN' && '👑 管理员'}
-                  </span>
+                  <div className="flex items-center space-x-2">
+                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                      project.author.skillLevel === 'BEGINNER' ? 'bg-green-50 text-green-700 border border-green-200' :
+                      project.author.skillLevel === 'INTERMEDIATE' ? 'bg-blue-50 text-blue-700 border border-blue-200' :
+                      'bg-purple-50 text-purple-700 border border-purple-200'
+                    }`}>
+                      {project.author.skillLevel === 'BEGINNER' && '🌱 零基础'}
+                      {project.author.skillLevel === 'INTERMEDIATE' && '💪 有基础'}
+                      {project.author.skillLevel === 'ADVANCED' && '🚀 专业级'}
+                    </span>
+                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium tag-role ${project.author.role}`}>
+                      {project.author.role === 'COACH' && '🎯 教练'}
+                      {project.author.role === 'ACTIONIST' && '⚡ 行动家'}
+                      {project.author.role === 'MEMBER' && '👥 圈友'}
+                      {project.author.role === 'VOLUNTEER' && '🤝 志愿者'}
+                      {project.author.role === 'STAFF' && '🛠️ 工作人员'}
+                      {project.author.role === 'ADMIN' && '👑 管理员'}
+                    </span>
+                  </div>
                 </div>
 
                 {/* 操作按钮 */}

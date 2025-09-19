@@ -36,17 +36,25 @@ enum UserRole {
   ADMIN      // 管理员
 }
 
+// 技术水平枚举
+enum SkillLevel {
+  BEGINNER     // 零基础小白
+  INTERMEDIATE // 有一定基础
+  ADVANCED     // 专业程序员
+}
+
 // 学员信息
 model User {
-  id           String   @id @default(cuid())
+  id           String     @id @default(cuid())
   nickname     String
-  planetNumber String   @unique // 星球编号
+  planetNumber String     @unique // 星球编号
   role         UserRole
+  skillLevel   SkillLevel @default(BEGINNER) // 技术水平
   avatar       String?
-  email        String?  @unique
-  password     String   // 用户密码
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  email        String?    @unique
+  password     String     // 用户密码
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
 
   projects Project[]
   votes    Vote[]

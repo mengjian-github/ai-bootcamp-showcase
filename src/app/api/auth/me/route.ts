@@ -28,6 +28,7 @@ export async function GET(request: NextRequest) {
         nickname: true,
         planetNumber: true,
         role: true,
+        skillLevel: true,
         email: true,
         avatar: true,
         createdAt: true

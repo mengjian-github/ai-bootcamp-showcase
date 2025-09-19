@@ -12,6 +12,12 @@ const USER_ROLES = [
   { value: 'STAFF', label: '工作人员' },
 ]
 
+const SKILL_LEVELS = [
+  { value: 'BEGINNER', label: '🌱 零基础小白', description: '刚接触编程，充满学习热情' },
+  { value: 'INTERMEDIATE', label: '💪 有一定基础', description: '掌握基本编程概念，希望提升技能' },
+  { value: 'ADVANCED', label: '🚀 专业程序员', description: '具备丰富编程经验，追求技术深度' },
+]
+
 export default function RegisterPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
@@ -19,6 +25,7 @@ export default function RegisterPage() {
     nickname: '',
     planetNumber: '',
     role: '',
+    skillLevel: '',
     email: '',
     password: '',
     confirmPassword: ''
@@ -44,6 +51,7 @@ export default function RegisterPage() {
           nickname: formData.nickname,
           planetNumber: formData.planetNumber,
           role: formData.role,
+          skillLevel: formData.skillLevel,
           email: formData.email || null,
           password: formData.password
         })
@@ -140,6 +148,32 @@ export default function RegisterPage() {
                   ))}
                 </select>
               </div>
+            </div>
+
+            <div>
+              <label className="form-label">
+                📊 技术水平 *
+              </label>
+              <div className="select-wrapper">
+                <select
+                  required
+                  className="enhanced-select"
+                  value={formData.skillLevel}
+                  onChange={(e) => setFormData({...formData, skillLevel: e.target.value})}
+                  onFocus={(e) => e.target.parentElement.classList.add('focused')}
+                  onBlur={(e) => e.target.parentElement.classList.remove('focused')}
+                >
+                  <option value="">请选择技术水平</option>
+                  {SKILL_LEVELS.map(level => (
+                    <option key={level.value} value={level.value} title={level.description}>
+                      {level.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                {formData.skillLevel && SKILL_LEVELS.find(l => l.value === formData.skillLevel)?.description}
+              </p>
             </div>
 
             <div>

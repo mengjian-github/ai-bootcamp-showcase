@@ -51,6 +51,7 @@ export async function GET(request: NextRequest) {
             nickname: true,
             planetNumber: true,
             role: true,
+            skillLevel: true,
             avatar: true
           }
         },
@@ -144,6 +145,7 @@ export async function POST(request: NextRequest) {
             nickname: true,
             planetNumber: true,
             role: true,
+            skillLevel: true,
             avatar: true
           }
         },
@@ -209,6 +211,7 @@ export async function PUT(request: NextRequest) {
             nickname: true,
             planetNumber: true,
             role: true,
+            skillLevel: true,
             avatar: true
           }
         },

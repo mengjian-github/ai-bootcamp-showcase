@@ -9,6 +9,7 @@ interface User {
   nickname: string
   planetNumber: string
   role: string
+  skillLevel: string
   email: string | null
   avatar: string | null
 }
@@ -38,6 +39,12 @@ const USER_ROLES = [
   { value: 'MEMBER', label: '圈友' },
   { value: 'VOLUNTEER', label: '志愿者' },
   { value: 'STAFF', label: '工作人员' },
+]
+
+const SKILL_LEVELS = [
+  { value: 'BEGINNER', label: '🌱 零基础小白', description: '刚接触编程，充满学习热情' },
+  { value: 'INTERMEDIATE', label: '💪 有一定基础', description: '掌握基本编程概念，希望提升技能' },
+  { value: 'ADVANCED', label: '🚀 专业程序员', description: '具备丰富编程经验，追求技术深度' },
 ]
 
 export default function ProfilePage() {
@@ -269,6 +276,31 @@ export default function ProfilePage() {
                 ) : (
                   <div className="form-input bg-gray-50">
                     {USER_ROLES.find(r => r.value === user.role)?.label}
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="form-label">技术水平</label>
+                {editMode ? (
+                  <div className="select-wrapper">
+                    <select
+                      className="enhanced-select"
+                      value={editData.skillLevel || ''}
+                      onChange={(e) => setEditData({...editData, skillLevel: e.target.value})}
+                      onFocus={(e) => e.target.parentElement.classList.add('focused')}
+                      onBlur={(e) => e.target.parentElement.classList.remove('focused')}
+                    >
+                      {SKILL_LEVELS.map(level => (
+                        <option key={level.value} value={level.value} title={level.description}>
+                          {level.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ) : (
+                  <div className="form-input bg-gray-50">
+                    {SKILL_LEVELS.find(l => l.value === user.skillLevel)?.label || '未设置'}
                   </div>
                 )}
               </div>
