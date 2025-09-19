@@ -2,6 +2,17 @@
 
 一个功能完整的AI编程训练营学员作品展示平台，支持用户认证、多训练营管理、作品上传、投票系统、管理后台等完整功能。
 
+## 🎬 功能演示
+
+<video width="100%" controls>
+  <source src="./public/videos/demo.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。请点击 <a href="./public/videos/demo.mp4">这里</a> 下载视频查看演示。
+</video>
+
+> 📹 **演示视频**：展示了平台的完整功能流程，包括用户注册登录、作品上传展示、投票互动、管理后台等核心特性。
+>
+> 💡 **提示**：如果视频无法播放，请直接访问 [`./public/videos/demo.mp4`](./public/videos/demo.mp4) 文件。
+
 ## ✨ 核心功能
 
 ### 🎯 作品展示系统
