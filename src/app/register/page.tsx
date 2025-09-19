@@ -1,7 +1,9 @@
 'use client'
 
 import { useState } from 'react'
+import { motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
+import { ArrowLeft, User, Star, Target, BarChart3, Mail, Lock, UserPlus } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 const USER_ROLES = [
@@ -30,6 +32,11 @@ export default function RegisterPage() {
     password: '',
     confirmPassword: ''
   })
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target
+    setFormData(prev => ({ ...prev, [name]: value }))
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -82,170 +89,204 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen hero-section flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div className="text-center">
-          <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <span className="text-2xl">🌟</span>
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 py-8">
+      <div className="container mx-auto px-4 max-w-2xl">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20"
+        >
+          {/* 头部 */}
+          <div className="flex items-center justify-between mb-8">
+            <button
+              onClick={() => router.back()}
+              className="flex items-center gap-2 text-white/70 hover:text-white transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5" />
+              返回
+            </button>
+            <h1 className="text-3xl font-bold text-white">加入我们</h1>
+            <div className="w-16" />
           </div>
-          <h2 className="text-3xl font-bold text-white mb-3">加入我们</h2>
-          <p className="text-blue-100">
-            已有账号？{' '}
-            <a href="/login" className="text-white hover:text-blue-200 font-semibold transition-colors">
-              点击登录
-            </a>
-          </p>
-        </div>
 
-        <div className="form-section">
+          {/* 登录链接 */}
+          <div className="text-center mb-8">
+            <p className="text-white/70">
+              已有账号？{' '}
+              <button
+                onClick={() => router.push('/login')}
+                className="text-white hover:text-purple-300 font-medium transition-colors"
+              >
+                点击登录
+              </button>
+            </p>
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* 昵称 */}
             <div>
-              <label className="form-label">
-                👤 昵称 *
+              <label className="block text-white/90 font-medium mb-2">
+                <User className="w-5 h-5 inline mr-2" />
+                昵称 *
               </label>
               <input
                 type="text"
-                required
-                placeholder="输入你的昵称"
-                className="form-input"
+                name="nickname"
                 value={formData.nickname}
-                onChange={(e) => setFormData({...formData, nickname: e.target.value})}
+                onChange={handleInputChange}
+                required
+                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent backdrop-blur-sm"
+                placeholder="输入你的昵称"
               />
             </div>
 
+            {/* 星球编号 */}
             <div>
-              <label className="form-label">
-                🌟 星球编号 *
+              <label className="block text-white/90 font-medium mb-2">
+                <Star className="w-5 h-5 inline mr-2" />
+                星球编号 *
               </label>
               <input
                 type="text"
-                required
-                placeholder="请输入纯数字，例如：001"
-                className="form-input"
+                name="planetNumber"
                 value={formData.planetNumber}
-                onChange={(e) => setFormData({...formData, planetNumber: e.target.value})}
+                onChange={handleInputChange}
+                required
+                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent backdrop-blur-sm"
+                placeholder="请输入纯数字，例如：001"
               />
             </div>
 
+            {/* 学员身份 */}
             <div>
-              <label className="form-label">
-                🎯 学员身份 *
+              <label className="block text-white/90 font-medium mb-2">
+                <Target className="w-5 h-5 inline mr-2" />
+                学员身份 *
               </label>
-              <div className="select-wrapper">
-                <select
-                  required
-                  className="enhanced-select"
-                  value={formData.role}
-                  onChange={(e) => setFormData({...formData, role: e.target.value})}
-                  onFocus={(e) => e.target.parentElement?.classList.add('focused')}
-                  onBlur={(e) => e.target.parentElement?.classList.remove('focused')}
-                >
-                  <option value="">请选择身份</option>
-                  {USER_ROLES.map(role => (
-                    <option key={role.value} value={role.value}>
-                      {role.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <select
+                name="role"
+                value={formData.role}
+                onChange={handleInputChange}
+                required
+                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent backdrop-blur-sm"
+              >
+                <option value="" className="bg-gray-800">请选择身份</option>
+                {USER_ROLES.map(role => (
+                  <option key={role.value} value={role.value} className="bg-gray-800">
+                    {role.label}
+                  </option>
+                ))}
+              </select>
             </div>
 
+            {/* 技术水平 */}
             <div>
-              <label className="form-label">
-                📊 技术水平 *
+              <label className="block text-white/90 font-medium mb-2">
+                <BarChart3 className="w-5 h-5 inline mr-2" />
+                技术水平 *
               </label>
-              <div className="select-wrapper">
-                <select
-                  required
-                  className="enhanced-select"
-                  value={formData.skillLevel}
-                  onChange={(e) => setFormData({...formData, skillLevel: e.target.value})}
-                  onFocus={(e) => e.target.parentElement?.classList.add('focused')}
-                  onBlur={(e) => e.target.parentElement?.classList.remove('focused')}
-                >
-                  <option value="">请选择技术水平</option>
-                  {SKILL_LEVELS.map(level => (
-                    <option key={level.value} value={level.value} title={level.description}>
-                      {level.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <p className="text-xs text-gray-500 mt-2">
-                {formData.skillLevel && SKILL_LEVELS.find(l => l.value === formData.skillLevel)?.description}
-              </p>
+              <select
+                name="skillLevel"
+                value={formData.skillLevel}
+                onChange={handleInputChange}
+                required
+                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent backdrop-blur-sm"
+              >
+                <option value="" className="bg-gray-800">请选择技术水平</option>
+                {SKILL_LEVELS.map(level => (
+                  <option key={level.value} value={level.value} className="bg-gray-800" title={level.description}>
+                    {level.label}
+                  </option>
+                ))}
+              </select>
+              {formData.skillLevel && (
+                <p className="text-white/60 text-sm mt-2">
+                  {SKILL_LEVELS.find(l => l.value === formData.skillLevel)?.description}
+                </p>
+              )}
             </div>
 
+            {/* 邮箱 */}
             <div>
-              <label className="form-label">
-                📧 邮箱（可选）
+              <label className="block text-white/90 font-medium mb-2">
+                <Mail className="w-5 h-5 inline mr-2" />
+                邮箱（可选）
               </label>
               <input
                 type="email"
-                placeholder="输入你的邮箱地址"
-                className="form-input"
+                name="email"
                 value={formData.email}
-                onChange={(e) => setFormData({...formData, email: e.target.value})}
+                onChange={handleInputChange}
+                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent backdrop-blur-sm"
+                placeholder="输入你的邮箱地址"
               />
             </div>
 
+            {/* 密码 */}
             <div>
-              <label className="form-label">
-                🔐 密码 *
+              <label className="block text-white/90 font-medium mb-2">
+                <Lock className="w-5 h-5 inline mr-2" />
+                密码 *
               </label>
               <input
                 type="password"
-                required
-                minLength={6}
-                placeholder="设置密码（至少6位）"
-                className="form-input"
+                name="password"
                 value={formData.password}
-                onChange={(e) => setFormData({...formData, password: e.target.value})}
+                onChange={handleInputChange}
+                required
+                minLength={6}
+                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent backdrop-blur-sm"
+                placeholder="设置密码（至少6位）"
               />
             </div>
 
+            {/* 确认密码 */}
             <div>
-              <label className="form-label">
-                🔒 确认密码 *
+              <label className="block text-white/90 font-medium mb-2">
+                <Lock className="w-5 h-5 inline mr-2" />
+                确认密码 *
               </label>
               <input
                 type="password"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleInputChange}
                 required
                 minLength={6}
+                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent backdrop-blur-sm"
                 placeholder="再次输入密码"
-                className="form-input"
-                value={formData.confirmPassword}
-                onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
               />
             </div>
 
-            <div className="flex space-x-4 pt-4">
+            {/* 提交按钮 */}
+            <div className="flex gap-4 pt-6">
               <button
                 type="button"
-                onClick={() => router.push('/')}
-                className="flex-1 btn-secondary"
+                onClick={() => router.back()}
+                className="flex-1 py-3 px-6 bg-white/10 hover:bg-white/20 text-white rounded-xl font-medium transition-colors border border-white/20"
               >
-                🏠 返回首页
+                取消
               </button>
               <button
                 type="submit"
-                className="flex-1 btn-primary"
                 disabled={loading}
+                className="flex-1 py-3 px-6 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-xl font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {loading ? (
-                  <span className="flex items-center justify-center">
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                  <>
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                     注册中...
-                  </span>
+                  </>
                 ) : (
-                  <span className="flex items-center justify-center">
-                    ✨ 注册
-                  </span>
+                  <>
+                    <UserPlus className="w-5 h-5" />
+                    注册
+                  </>
                 )}
               </button>
             </div>
           </form>
-        </div>
+        </motion.div>
       </div>
     </div>
   )

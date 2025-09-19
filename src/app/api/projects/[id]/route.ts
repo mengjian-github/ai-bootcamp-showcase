@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
 import jwt from 'jsonwebtoken'
 
+// 配置运行时
+export const runtime = 'nodejs'
+export const maxDuration = 45
+
 const prisma = new PrismaClient()
 
 export async function DELETE(
@@ -108,17 +112,35 @@ export async function PUT(
     }
 
     const body = await request.json()
-    const { title, description, isApproved } = body
+    const {
+      title,
+      description,
+      type,
+      projectUrl,
+      htmlFile,
+      coverImage,
+      bootcampId,
+      isApproved
+    } = body
+
+    console.log('Update request body:', body)
 
     // 构建更新数据
     const updateData: any = {}
     if (title !== undefined) updateData.title = title
     if (description !== undefined) updateData.description = description
+    if (type !== undefined) updateData.type = type
+    if (projectUrl !== undefined) updateData.projectUrl = projectUrl
+    if (htmlFile !== undefined) updateData.htmlFile = htmlFile
+    if (coverImage !== undefined) updateData.coverImage = coverImage
+    if (bootcampId !== undefined) updateData.bootcampId = bootcampId
 
     // 只有管理员可以修改审核状态
     if (isApproved !== undefined && decoded.role === 'ADMIN') {
       updateData.isApproved = isApproved
     }
+
+    console.log('Update data to be applied:', updateData)
 
     // 更新作品
     const updatedProject = await prisma.project.update({

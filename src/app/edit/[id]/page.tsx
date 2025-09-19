@@ -1,72 +1,118 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter, useParams } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { ArrowLeft, Upload, Link, FileText, Image, Save } from 'lucide-react'
+import { Save, ArrowLeft, Upload, Link, FileText, Image } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { useRouter } from 'next/navigation'
-
-const USER_ROLES = [
-  { value: 'COACH', label: '教练' },
-  { value: 'ACTIONIST', label: '行动家' },
-  { value: 'MEMBER', label: '圈友' },
-  { value: 'VOLUNTEER', label: '志愿者' },
-  { value: 'STAFF', label: '工作人员' },
-]
 
 interface Bootcamp {
   id: string
   name: string
 }
 
-export default function UploadPage() {
+interface Project {
+  id: string
+  title: string
+  description: string
+  type: 'HTML_FILE' | 'LINK'
+  htmlFile?: string
+  projectUrl?: string
+  coverImage: string
+  bootcampId: string
+  bootcamp: {
+    id: string
+    name: string
+  }
+}
+
+export default function EditProjectPage() {
   const router = useRouter()
+  const params = useParams()
+  const projectId = params.id as string
+
+  const [project, setProject] = useState<Project | null>(null)
   const [bootcamps, setBootcamps] = useState<Bootcamp[]>([])
-  const [loading, setLoading] = useState(false)
-  const [user, setUser] = useState<any>(null)
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    bootcampId: '',
-    type: 'LINK' as 'LINK' | 'HTML_FILE',
+    type: 'LINK' as 'HTML_FILE' | 'LINK',
     projectUrl: '',
+    bootcampId: ''
   })
-
   const [coverImageFile, setCoverImageFile] = useState<File | null>(null)
   const [htmlFile, setHtmlFile] = useState<File | null>(null)
   const [coverImagePreview, setCoverImagePreview] = useState<string>('')
+  const [loading, setLoading] = useState(false)
+  const [pageLoading, setPageLoading] = useState(true)
 
+  // 获取作品详情
   useEffect(() => {
-    // 检查用户是否已登录
-    const token = localStorage.getItem('token')
-    const userData = localStorage.getItem('user')
+    const fetchProject = async () => {
+      try {
+        const token = localStorage.getItem('token')
+        if (!token) {
+          router.push('/login')
+          return
+        }
 
-    if (!token || !userData) {
-      window.location.href = '/login'
-      return
+        const response = await fetch(`/api/projects?admin=true`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+
+        if (response.ok) {
+          const projects = await response.json()
+          const currentProject = projects.find((p: Project) => p.id === projectId)
+
+          if (currentProject) {
+            setProject(currentProject)
+            setFormData({
+              title: currentProject.title,
+              description: currentProject.description || '',
+              type: currentProject.type,
+              projectUrl: currentProject.projectUrl || '',
+              bootcampId: currentProject.bootcampId
+            })
+            setCoverImagePreview(currentProject.coverImage)
+          } else {
+            toast.error('作品不存在')
+            router.push('/')
+          }
+        } else if (response.status === 401) {
+          toast.error('请先登录')
+          router.push('/login')
+        } else {
+          toast.error('获取作品信息失败')
+        }
+      } catch (error) {
+        console.error('Error fetching project:', error)
+        toast.error('获取作品信息失败')
+      } finally {
+        setPageLoading(false)
+      }
     }
 
-    try {
-      const parsedUser = JSON.parse(userData)
-      setUser(parsedUser)
-    } catch (error) {
-      console.error('Error parsing user data:', error)
-      window.location.href = '/login'
-      return
+    fetchProject()
+  }, [projectId, router])
+
+  // 获取训练营列表
+  useEffect(() => {
+    const fetchBootcamps = async () => {
+      try {
+        const response = await fetch('/api/bootcamps')
+        if (response.ok) {
+          const data = await response.json()
+          setBootcamps(data)
+        }
+      } catch (error) {
+        console.error('Error fetching bootcamps:', error)
+      }
     }
 
     fetchBootcamps()
   }, [])
-
-  const fetchBootcamps = async () => {
-    try {
-      const response = await fetch('/api/bootcamps')
-      const data = await response.json()
-      setBootcamps(data)
-    } catch (error) {
-      console.error('Error fetching bootcamps:', error)
-    }
-  }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -98,21 +144,38 @@ export default function UploadPage() {
   }
 
   const uploadFile = async (file: File, type: 'cover' | 'html'): Promise<string> => {
+    console.log('uploadFile called with:', { fileName: file.name, fileSize: file.size, type })
+
     const uploadFormData = new FormData()
     uploadFormData.append('file', file)
     uploadFormData.append('type', type)
 
+    console.log('Sending upload request to /api/upload...')
     const response = await fetch('/api/upload', {
       method: 'POST',
       body: uploadFormData
     })
 
+    console.log('Upload response status:', response.status)
+
     if (!response.ok) {
-      throw new Error('文件上传失败')
+      const errorText = await response.text()
+      console.error('Upload failed:', errorText)
+      throw new Error(`文件上传失败: ${response.status} - ${errorText}`)
     }
 
     const data = await response.json()
-    return data.url
+    console.log('Upload response data:', data)
+
+    // API 返回的字段是 path 而不是 url
+    const fileUrl = data.url || data.path
+    if (!fileUrl) {
+      console.error('Upload response missing URL/path:', data)
+      throw new Error('上传响应中缺少 URL 或 path')
+    }
+
+    console.log('Using file URL:', fileUrl)
+    return fileUrl
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -127,24 +190,43 @@ export default function UploadPage() {
         return
       }
 
-      if (!coverImageFile) {
-        toast.error('请上传封面图片')
-        return
+      let coverImageUrl = project?.coverImage || ''
+      let htmlFileUrl = project?.htmlFile || ''
+
+      console.log('Original cover image:', project?.coverImage)
+      console.log('Has new cover image file:', !!coverImageFile)
+
+      // 上传新的封面图
+      if (coverImageFile) {
+        console.log('Uploading new cover image...')
+        try {
+          const newCoverUrl = await uploadFile(coverImageFile, 'cover')
+          console.log('New cover image uploaded:', newCoverUrl)
+          coverImageUrl = newCoverUrl
+        } catch (error) {
+          console.error('Failed to upload cover image:', error)
+          throw error
+        }
       }
 
-      let coverImageUrl = ''
-      let htmlFileUrl = ''
-
-      // 上传封面图
-      coverImageUrl = await uploadFile(coverImageFile, 'cover')
-
-      // 上传HTML文件
+      // 上传新的HTML文件
       if (htmlFile && formData.type === 'HTML_FILE') {
-        htmlFileUrl = await uploadFile(htmlFile, 'html')
+        console.log('Uploading new HTML file...')
+        try {
+          const newHtmlUrl = await uploadFile(htmlFile, 'html')
+          console.log('New HTML file uploaded:', newHtmlUrl)
+          htmlFileUrl = newHtmlUrl
+        } catch (error) {
+          console.error('Failed to upload HTML file:', error)
+          throw error
+        }
       }
 
-      // 创建作品
-      const projectData = {
+      console.log('Final cover image URL:', coverImageUrl)
+      console.log('Final HTML file URL:', htmlFileUrl)
+
+      // 更新作品
+      const updateData = {
         title: formData.title,
         description: formData.description,
         type: formData.type,
@@ -154,28 +236,46 @@ export default function UploadPage() {
         bootcampId: formData.bootcampId
       }
 
-      const response = await fetch('/api/projects', {
-        method: 'POST',
+      console.log('Update data being sent:', updateData)
+
+      const response = await fetch(`/api/projects/${projectId}`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(projectData)
+        body: JSON.stringify(updateData)
       })
 
       if (response.ok) {
-        toast.success('作品提交成功！')
+        toast.success('作品更新成功！')
         router.push('/')
       } else {
         const errorData = await response.json()
-        toast.error(errorData.message || '提交失败')
+        toast.error(errorData.message || '更新失败')
       }
     } catch (error) {
-      console.error('Error submitting project:', error)
-      toast.error('提交作品失败')
+      console.error('Error updating project:', error)
+      toast.error('更新作品失败')
     } finally {
       setLoading(false)
     }
+  }
+
+  if (pageLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
+        <div className="text-white text-xl">加载中...</div>
+      </div>
+    )
+  }
+
+  if (!project) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
+        <div className="text-white text-xl">作品不存在</div>
+      </div>
+    )
   }
 
   return (
@@ -195,7 +295,7 @@ export default function UploadPage() {
               <ArrowLeft className="w-5 h-5" />
               返回
             </button>
-            <h1 className="text-3xl font-bold text-white">上传作品</h1>
+            <h1 className="text-3xl font-bold text-white">编辑作品</h1>
             <div className="w-16" />
           </div>
 
@@ -318,7 +418,7 @@ export default function UploadPage() {
               <div>
                 <label className="block text-white/90 font-medium mb-2">
                   <Upload className="w-5 h-5 inline mr-2" />
-                  HTML文件 *
+                  HTML文件 {htmlFile || project.htmlFile ? '' : '*'}
                 </label>
                 <div className="relative">
                   <input
@@ -326,11 +426,12 @@ export default function UploadPage() {
                     accept=".html,text/html"
                     onChange={handleHtmlFileChange}
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                    required
                   />
                   <div className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white/70 border-dashed hover:border-white/40 transition-colors">
                     {htmlFile ? (
                       <span className="text-white">已选择: {htmlFile.name}</span>
+                    ) : project.htmlFile ? (
+                      <span className="text-white">当前文件: {project.htmlFile.split('/').pop()}</span>
                     ) : (
                       <span>点击选择HTML文件或拖拽到这里</span>
                     )}
@@ -343,7 +444,7 @@ export default function UploadPage() {
             <div>
               <label className="block text-white/90 font-medium mb-2">
                 <Image className="w-5 h-5 inline mr-2" />
-                封面图片 (建议800x600px) *
+                封面图片 (建议800x600px)
               </label>
               <div className="relative">
                 <input
@@ -351,13 +452,12 @@ export default function UploadPage() {
                   accept="image/*"
                   onChange={handleCoverImageChange}
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                  required
                 />
                 <div className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white/70 border-dashed hover:border-white/40 transition-colors">
                   {coverImageFile ? (
                     <span className="text-white">已选择: {coverImageFile.name}</span>
                   ) : (
-                    <span>点击选择封面图片或拖拽到这里</span>
+                    <span>点击选择封面图片或拖拽到这里 (可选)</span>
                   )}
                 </div>
               </div>
@@ -392,12 +492,12 @@ export default function UploadPage() {
                 {loading ? (
                   <>
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                    提交中...
+                    更新中...
                   </>
                 ) : (
                   <>
                     <Save className="w-5 h-5" />
-                    提交作品
+                    更新作品
                   </>
                 )}
               </button>

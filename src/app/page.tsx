@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { TrendingUp, Users, Award, Star, ExternalLink, Heart } from 'lucide-react'
+import { TrendingUp, Users, Award, Star, ExternalLink, Heart, Edit, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { useRouter } from 'next/navigation'
 
 interface Bootcamp {
   id: string
@@ -42,17 +43,43 @@ interface Project {
 }
 
 export default function Home() {
+  const router = useRouter()
   const [bootcamps, setBootcamps] = useState<Bootcamp[]>([])
   const [projects, setProjects] = useState<Project[]>([])
   const [selectedBootcamp, setSelectedBootcamp] = useState<string>('all')
   const [loading, setLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
+  const [currentUser, setCurrentUser] = useState<any>(null)
   const projectsPerPage = 6
 
   useEffect(() => {
     fetchBootcamps()
     fetchProjects()
+    fetchCurrentUser()
   }, [])
+
+  const fetchCurrentUser = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      if (!token) return
+
+      const response = await fetch('/api/auth/me', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (response.ok) {
+        const user = await response.json()
+        console.log('Current user fetched:', user)
+        setCurrentUser(user)
+      } else {
+        console.log('Failed to fetch current user:', response.status, response.statusText)
+      }
+    } catch (error) {
+      console.error('Error fetching current user:', error)
+    }
+  }
 
   const fetchBootcamps = async () => {
     try {
@@ -122,12 +149,54 @@ export default function Home() {
     }
   }
 
+  const handleDeleteProject = async (projectId: string, projectTitle: string) => {
+    if (!confirm(`确定要删除作品"${projectTitle}"吗？此操作不可撤销。`)) {
+      return
+    }
+
+    const token = localStorage.getItem('token')
+    if (!token) {
+      toast.error('请先登录')
+      router.push('/login')
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/projects/${projectId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (response.ok) {
+        toast.success('作品删除成功')
+        fetchProjects()
+      } else {
+        const errorData = await response.json()
+        toast.error(errorData.message || '删除失败')
+      }
+    } catch (error) {
+      console.error('Error deleting project:', error)
+      toast.error('删除作品失败')
+    }
+  }
+
   const viewProject = (project: Project) => {
     if (project.type === 'LINK' && project.projectUrl) {
       window.open(project.projectUrl, '_blank')
     } else if (project.type === 'HTML_FILE' && project.htmlFile) {
       window.open(project.htmlFile, '_blank')
     }
+  }
+
+  const canEditProject = (project: Project) => {
+    console.log('canEditProject check:', {
+      currentUser,
+      projectAuthorId: project.author.id,
+      userCanEdit: currentUser && (currentUser.id === project.author.id || currentUser.role === 'ADMIN')
+    })
+    return currentUser && (currentUser.id === project.author.id || currentUser.role === 'ADMIN')
   }
 
   const filteredProjects = selectedBootcamp === 'all'
@@ -484,15 +553,41 @@ export default function Home() {
 
                 {/* 操作按钮 */}
                 <div className="flex items-center justify-between">
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => viewProject(project)}
-                    className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-300 shadow-md hover:shadow-lg"
-                  >
-                    <ExternalLink className="w-4 h-4" />
-                    <span>查看作品</span>
-                  </motion.button>
+                  <div className="flex items-center space-x-2">
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => viewProject(project)}
+                      className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-300 shadow-md hover:shadow-lg"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      <span>查看作品</span>
+                    </motion.button>
+
+                    {/* 编辑和删除按钮 - 只有作者和管理员可见 */}
+                    {canEditProject(project) && (
+                      <div className="flex items-center space-x-1">
+                        <motion.button
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => router.push(`/edit/${project.id}`)}
+                          className="flex items-center justify-center w-8 h-8 bg-yellow-100 hover:bg-yellow-200 text-yellow-700 rounded-lg transition-all duration-300"
+                          title="编辑作品"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </motion.button>
+                        <motion.button
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => handleDeleteProject(project.id, project.title)}
+                          className="flex items-center justify-center w-8 h-8 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg transition-all duration-300"
+                          title="删除作品"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </motion.button>
+                      </div>
+                    )}
+                  </div>
 
                   <motion.button
                     whileHover={{ scale: 1.1 }}
