@@ -98,21 +98,38 @@ export default function UploadPage() {
   }
 
   const uploadFile = async (file: File, type: 'cover' | 'html'): Promise<string> => {
+    console.log('uploadFile called with:', { fileName: file.name, fileSize: file.size, type })
+
     const uploadFormData = new FormData()
     uploadFormData.append('file', file)
     uploadFormData.append('type', type)
 
+    console.log('Sending upload request to /api/upload...')
     const response = await fetch('/api/upload', {
       method: 'POST',
       body: uploadFormData
     })
 
+    console.log('Upload response status:', response.status)
+
     if (!response.ok) {
-      throw new Error('文件上传失败')
+      const errorText = await response.text()
+      console.error('Upload failed:', errorText)
+      throw new Error(`文件上传失败: ${response.status} - ${errorText}`)
     }
 
     const data = await response.json()
-    return data.url
+    console.log('Upload response data:', data)
+
+    // API 返回的字段是 path 而不是 url
+    const fileUrl = data.url || data.path
+    if (!fileUrl) {
+      console.error('Upload response missing URL/path:', data)
+      throw new Error('上传响应中缺少 URL 或 path')
+    }
+
+    console.log('Using file URL:', fileUrl)
+    return fileUrl
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -135,12 +152,27 @@ export default function UploadPage() {
       let coverImageUrl = ''
       let htmlFileUrl = ''
 
+      console.log('Starting file uploads...')
+      console.log('Cover image file:', coverImageFile)
+
       // 上传封面图
-      coverImageUrl = await uploadFile(coverImageFile, 'cover')
+      try {
+        coverImageUrl = await uploadFile(coverImageFile, 'cover')
+        console.log('Cover image uploaded successfully:', coverImageUrl)
+      } catch (error) {
+        console.error('Failed to upload cover image:', error)
+        throw error
+      }
 
       // 上传HTML文件
       if (htmlFile && formData.type === 'HTML_FILE') {
-        htmlFileUrl = await uploadFile(htmlFile, 'html')
+        try {
+          htmlFileUrl = await uploadFile(htmlFile, 'html')
+          console.log('HTML file uploaded successfully:', htmlFileUrl)
+        } catch (error) {
+          console.error('Failed to upload HTML file:', error)
+          throw error
+        }
       }
 
       // 创建作品
@@ -153,6 +185,8 @@ export default function UploadPage() {
         coverImage: coverImageUrl,
         bootcampId: formData.bootcampId
       }
+
+      console.log('Project data to be sent:', projectData)
 
       const response = await fetch('/api/projects', {
         method: 'POST',

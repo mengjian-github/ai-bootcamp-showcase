@@ -123,8 +123,37 @@ export async function POST(request: NextRequest) {
       bootcampId
     } = body
 
+    console.log('Create project request body:', body)
+
+    // 验证必需字段
+    if (!title || !type || !bootcampId) {
+      return NextResponse.json(
+        { message: '缺少必需字段：title, type, bootcampId' },
+        { status: 400 }
+      )
+    }
+
+    if (!coverImage) {
+      return NextResponse.json(
+        { message: '封面图片是必需的' },
+        { status: 400 }
+      )
+    }
+
     // 使用JWT中的用户ID作为作者ID
     const authorId = decoded.userId
+
+    console.log('Creating project with data:', {
+      title,
+      description,
+      type,
+      htmlFile: htmlFile || null,
+      projectUrl: projectUrl || null,
+      coverImage,
+      bootcampId,
+      authorId,
+      isApproved: true
+    })
 
     const project = await prisma.project.create({
       data: {
