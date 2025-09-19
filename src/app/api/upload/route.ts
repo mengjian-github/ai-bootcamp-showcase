@@ -1,6 +1,14 @@
 import { NextResponse } from 'next/server'
-import { writeFile, mkdir } from 'fs/promises'
-import { join } from 'path'
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
+
+const r2Client = new S3Client({
+  region: 'auto',
+  endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+  credentials: {
+    accessKeyId: process.env.R2_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
+  },
+})
 
 export async function POST(request: Request) {
   try {
@@ -30,22 +38,23 @@ export async function POST(request: Request) {
     const buffer = Buffer.from(bytes)
 
     const filename = `${Date.now()}-${file.name}`
-    const uploadsDir = join(process.cwd(), 'public', 'uploads')
-    const filepath = join(uploadsDir, filename)
+    const bucketName = process.env.R2_BUCKET_NAME!
 
-    // 确保uploads目录存在
-    try {
-      await mkdir(uploadsDir, { recursive: true })
-    } catch (error) {
-      // 目录可能已经存在，忽略错误
-    }
+    const uploadCommand = new PutObjectCommand({
+      Bucket: bucketName,
+      Key: filename,
+      Body: buffer,
+      ContentType: file.type,
+    })
 
-    await writeFile(filepath, buffer)
+    await r2Client.send(uploadCommand)
+
+    const publicUrl = `${process.env.R2_PUBLIC_URL}/${filename}`
 
     return NextResponse.json({
       message: 'File uploaded successfully',
       filename,
-      path: `/uploads/${filename}`
+      path: publicUrl
     })
   } catch (error) {
     console.error('Error uploading file:', error)
