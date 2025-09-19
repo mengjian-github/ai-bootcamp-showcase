@@ -15,7 +15,7 @@ model Bootcamp {
   id          String   @id @default(cuid())
   name        String   @unique
   description String?
-  startDate   DateTime
+  startDate   DateTime?
   endDate     DateTime?
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
@@ -33,6 +33,7 @@ enum UserRole {
   MEMBER     // 圈友
   VOLUNTEER  // 志愿者
   STAFF      // 工作人员
+  ADMIN      // 管理员
 }
 
 // 学员信息
@@ -43,6 +44,7 @@ model User {
   role         UserRole
   avatar       String?
   email        String?  @unique
+  password     String   // 用户密码
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 

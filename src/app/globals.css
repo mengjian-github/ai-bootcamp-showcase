@@ -3,39 +3,723 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+  /* 主色调 - 深海蓝到紫色渐变 */
+  --primary-50: #eff6ff;
+  --primary-100: #dbeafe;
+  --primary-200: #bfdbfe;
+  --primary-300: #93c5fd;
+  --primary-400: #60a5fa;
+  --primary-500: #3b82f6;
+  --primary-600: #2563eb;
+  --primary-700: #1d4ed8;
+  --primary-800: #1e40af;
+  --primary-900: #1e3a8a;
+
+  /* 辅助色调 - 温暖的渐变色 */
+  --accent-orange: #ff6b35;
+  --accent-pink: #ff6b9d;
+  --accent-purple: #6366f1;
+  --accent-green: #10b981;
+  --accent-yellow: #f59e0b;
+
+  /* 中性色调 */
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+  --gray-900: #111827;
+
+  /* 渐变定义 */
+  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --gradient-warm: linear-gradient(135deg, #ff6b35 0%, #ff6b9d 100%);
+  --gradient-cool: linear-gradient(135deg, #667eea 0%, #6366f1 100%);
+  --gradient-success: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  --gradient-surface: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
+@layer base {
+  * {
+    @apply border-gray-200;
   }
-}
-
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  body {
+    @apply bg-gray-50 text-gray-900;
+  }
 }
 
 @layer components {
+  /* 主要按钮 - 渐变设计 */
   .btn-primary {
-    @apply bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-lg transition-colors;
+    @apply inline-flex items-center px-6 py-3 font-semibold rounded-xl
+           text-white relative overflow-hidden transition-all duration-300
+           transform hover:scale-105 hover:-translate-y-0.5
+           focus:outline-none focus:ring-4 focus:ring-blue-500/50
+           disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none;
+    background: var(--gradient-primary);
+    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4),
+                0 2px 4px rgba(0, 0, 0, 0.1);
   }
 
+  .btn-primary:hover {
+    box-shadow: 0 8px 30px rgba(102, 126, 234, 0.6),
+                0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  .btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.6s;
+  }
+
+  .btn-primary:hover::before {
+    left: 100%;
+  }
+
+  /* 次要按钮 - 玻璃效果 */
   .btn-secondary {
-    @apply bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors;
+    @apply inline-flex items-center px-6 py-3 font-semibold rounded-xl
+           text-gray-700 relative overflow-hidden transition-all duration-300
+           transform hover:scale-105 hover:-translate-y-0.5
+           focus:outline-none focus:ring-4 focus:ring-gray-300/50;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1),
+                0 2px 4px rgba(0, 0, 0, 0.05);
   }
 
+  .btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15),
+                0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  /* 卡片 - 增强立体效果 */
   .card {
-    @apply bg-white rounded-lg shadow-md p-6 border border-gray-100;
+    @apply rounded-2xl p-8 border relative overflow-hidden transition-all duration-300;
+    background: var(--gradient-surface);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1),
+                0 2px 8px rgba(0, 0, 0, 0.05),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  }
+
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15),
+                0 4px 16px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  }
+
+  .gradient-bg {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+
+  .glass-effect {
+    @apply backdrop-blur-md bg-white/20 border border-white/30;
+  }
+
+  .hover-scale {
+    @apply transition-transform duration-300 hover:scale-105;
+  }
+
+  .fade-in {
+    animation: fadeIn 0.6s ease-in-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .slide-up {
+    animation: slideUp 0.6s ease-out;
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .pulse-slow {
+    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  .glow {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+  }
+
+  .text-gradient {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .bg-pattern {
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(59, 130, 246, 0.1) 1px, transparent 0);
+    background-size: 20px 20px;
+  }
+
+  /* 作品卡片 - 高级立体效果 */
+  .project-card {
+    @apply cursor-pointer relative overflow-hidden transition-all duration-500;
+    background: var(--gradient-surface);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    padding: 24px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1),
+                0 4px 12px rgba(0, 0, 0, 0.05),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  }
+
+  .project-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.15),
+                0 8px 24px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  }
+
+  .project-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.2), transparent);
+    transition: left 0.8s ease;
+    z-index: 1;
+  }
+
+  .project-card:hover::before {
+    left: 100%;
+  }
+
+  .project-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg,
+                  rgba(255, 255, 255, 0.1) 0%,
+                  transparent 50%,
+                  rgba(102, 126, 234, 0.05) 100%);
+    border-radius: 20px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 1;
+  }
+
+  .project-card:hover::after {
+    opacity: 1;
+  }
+
+  .project-card > * {
+    position: relative;
+    z-index: 2;
+  }
+
+  .bootcamp-filter {
+    @apply px-4 py-2 rounded-lg font-medium transition-all duration-300
+           transform hover:scale-105 relative overflow-hidden;
+  }
+
+  .bootcamp-filter.active {
+    @apply bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg;
+  }
+
+  .bootcamp-filter:not(.active) {
+    @apply bg-white text-gray-700 border border-gray-300 hover:bg-gray-50
+           hover:border-blue-300 hover:text-blue-600;
+  }
+
+  .vote-button {
+    @apply transition-all duration-300 transform hover:scale-110
+           active:scale-95 focus:outline-none;
+  }
+
+  .vote-button:hover {
+    filter: drop-shadow(0 4px 8px rgba(239, 68, 68, 0.3));
+  }
+
+  .hero-section {
+    @apply relative overflow-hidden;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+
+  .hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd"><g fill="%23ffffff" fill-opacity="0.05"><polygon points="36 34 24 34 24 22 36 22"/></g></g></svg>');
+    opacity: 0.3;
+    pointer-events: none;
+  }
+
+  .stats-card {
+    @apply bg-white rounded-xl p-6 shadow-lg border border-gray-100
+           transition-all duration-300 hover:shadow-xl hover:-translate-y-1;
+  }
+
+  .loading-spinner {
+    @apply animate-spin rounded-full border-4 border-gray-300 border-t-blue-600;
+  }
+
+  .empty-state {
+    @apply text-center py-16 px-8;
+  }
+
+  .tag {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .tag-role {
+    @apply tag;
+  }
+
+  .tag-role.COACH {
+    @apply bg-purple-100 text-purple-800;
+  }
+
+  .tag-role.ACTIONIST {
+    @apply bg-green-100 text-green-800;
+  }
+
+  .tag-role.MEMBER {
+    @apply bg-blue-100 text-blue-800;
+  }
+
+  .tag-role.VOLUNTEER {
+    @apply bg-yellow-100 text-yellow-800;
+  }
+
+  .tag-role.STAFF {
+    @apply bg-gray-100 text-gray-800;
+  }
+
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .backdrop-blur-md {
+    backdrop-filter: blur(12px);
+  }
+
+  .bg-white\/95 {
+    background-color: rgba(255, 255, 255, 0.95);
+  }
+
+  .border-white\/20 {
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  /* 简洁优雅的设计 */
+  .subtle-shadow {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.2s ease;
+  }
+
+  .subtle-shadow:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  }
+
+  .micro-animation {
+    transition: transform 0.15s ease;
+  }
+
+  .micro-animation:hover {
+    transform: translateY(-2px);
+  }
+
+  .clean-glass {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+  }
+
+  .text-primary {
+    color: #3b82f6;
+  }
+
+  .text-secondary {
+    color: #64748b;
+  }
+
+  .bg-primary {
+    background-color: #3b82f6;
+  }
+
+  .bg-primary-light {
+    background-color: #dbeafe;
+  }
+
+  .border-primary {
+    border-color: #3b82f6;
+  }
+
+  /* 现代化表单样式 */
+  .form-input {
+    @apply w-full px-4 py-3 rounded-xl border border-gray-200
+           bg-white/80 backdrop-blur-sm transition-all duration-300
+           focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20
+           hover:border-gray-300 placeholder-gray-400;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  }
+
+  .form-input:focus {
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    transform: translateY(-1px);
+  }
+
+  .form-textarea {
+    @apply form-input resize-none;
+    min-height: 120px;
+  }
+
+  .form-select {
+    @apply form-input appearance-none cursor-pointer relative;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%233b82f6'%3e%3cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3e%3c/svg%3e");
+    background-position: right 14px center;
+    background-repeat: no-repeat;
+    background-size: 18px;
+    padding-right: 45px;
+    transition: all 0.3s ease;
+    color-scheme: light;
+  }
+
+  .form-select:hover {
+    @apply border-blue-400;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%232563eb'%3e%3cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3e%3c/svg%3e");
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+  }
+
+  .form-select:focus {
+    @apply border-blue-500 ring-4 ring-blue-500/20;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%233b82f6'%3e%3cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3e%3c/svg%3e");
+    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.25),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    transform: translateY(-1px);
+  }
+
+  .form-select option {
+    @apply py-3 px-4 text-gray-800 bg-white;
+    font-weight: 500;
+    border-radius: 6px;
+    margin: 2px 4px;
+    transition: all 0.2s ease;
+  }
+
+  .form-select option:hover {
+    @apply bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-900;
+    transform: translateX(2px);
+  }
+
+  .form-select option:checked,
+  .form-select option:focus {
+    @apply bg-gradient-to-r from-blue-500 to-indigo-600 text-white;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+  }
+
+  /* 增强版select样式 */
+  .select-wrapper {
+    @apply relative;
+  }
+
+  .select-wrapper::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 16px;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 8px solid #3b82f6;
+    pointer-events: none;
+    transition: all 0.3s ease;
+  }
+
+  .select-wrapper:hover::after {
+    border-top-color: #2563eb;
+    transform: translateY(-50%) scale(1.1);
+  }
+
+  .select-wrapper.focused::after {
+    border-top-color: #1d4ed8;
+    transform: translateY(-50%) rotate(180deg);
+  }
+
+  .enhanced-select {
+    @apply w-full px-4 py-3 pr-12 rounded-xl border border-gray-200
+           bg-white/90 backdrop-blur-sm transition-all duration-300
+           focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20
+           hover:border-gray-300 hover:bg-white appearance-none cursor-pointer;
+    background-image: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    color-scheme: light;
+  }
+
+  .enhanced-select:focus {
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    transform: translateY(-1px);
+  }
+
+  .enhanced-select option {
+    @apply py-3 px-4 text-gray-800 bg-white;
+    font-weight: 500;
+    border-radius: 6px;
+    margin: 2px 4px;
+    transition: all 0.2s ease;
+  }
+
+  .enhanced-select option:hover {
+    @apply bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-900;
+    transform: translateX(2px);
+  }
+
+  .enhanced-select option:checked,
+  .enhanced-select option:focus {
+    @apply bg-gradient-to-r from-blue-500 to-indigo-600 text-white;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+  }
+
+  .enhanced-select option:disabled {
+    @apply text-gray-400 bg-gray-100 cursor-not-allowed;
+  }
+
+  /* 特殊处理select下拉列表外观 */
+  .enhanced-select,
+  .form-select {
+    /* 设置下拉列表的基础样式 */
+    color: #374151;
+    font-size: 16px;
+    line-height: 1.5;
+  }
+
+  /* 针对WebKit浏览器的下拉列表优化 */
+  .enhanced-select::-webkit-scrollbar,
+  .form-select::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .enhanced-select::-webkit-scrollbar-track,
+  .form-select::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 4px;
+  }
+
+  .enhanced-select::-webkit-scrollbar-thumb,
+  .form-select::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+  }
+
+  .enhanced-select::-webkit-scrollbar-thumb:hover,
+  .form-select::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+
+  /* 改善下拉列表项的间距和可读性 */
+  .enhanced-select option,
+  .form-select option {
+    padding: 12px 16px !important;
+    line-height: 1.4 !important;
+    min-height: 44px !important;
+  }
+
+  /* 提供更好的视觉反馈 */
+  .select-wrapper:focus-within .enhanced-select {
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1),
+                0 4px 16px rgba(59, 130, 246, 0.15);
+  }
+
+  .form-radio {
+    @apply appearance-none w-5 h-5 border-2 border-gray-300 rounded-full
+           bg-white cursor-pointer transition-all duration-200
+           hover:border-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-500/20;
+  }
+
+  .form-radio:checked {
+    @apply border-blue-500 bg-blue-500;
+    background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3ccircle cx='8' cy='8' r='3'/%3e%3c/svg%3e");
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+
+  .form-file {
+    @apply w-full px-4 py-3 rounded-xl border-2 border-dashed border-gray-300
+           bg-gray-50/50 transition-all duration-300 cursor-pointer
+           hover:border-blue-400 hover:bg-blue-50/50
+           focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20;
+  }
+
+  .form-file:hover {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(147, 197, 253, 0.05) 100%);
+  }
+
+  .form-label {
+    @apply block text-sm font-semibold text-gray-700 mb-3;
+  }
+
+  .form-section {
+    @apply p-8 rounded-2xl border border-white/50 relative overflow-hidden;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.8) 100%);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08),
+                0 2px 8px rgba(0, 0, 0, 0.04),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  }
+
+  .form-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--gradient-primary);
+    opacity: 0.6;
+  }
+
+  /* 增强的统计卡片 */
+  .stats-card {
+    @apply rounded-2xl p-8 text-center relative overflow-hidden transition-all duration-500;
+    background: var(--gradient-surface);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1),
+                0 4px 12px rgba(0, 0, 0, 0.05),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  }
+
+  .stats-card:hover {
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15),
+                0 8px 24px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  }
+
+  .stats-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg,
+                  rgba(102, 126, 234, 0.05) 0%,
+                  transparent 50%,
+                  rgba(118, 75, 162, 0.05) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .stats-card:hover::before {
+    opacity: 1;
+  }
+
+  /* 改进的Hero区域 */
+  .hero-section {
+    @apply relative overflow-hidden;
+    background: linear-gradient(135deg,
+                  #667eea 0%,
+                  #764ba2 50%,
+                  #6366f1 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+
+  .hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd"><g fill="%23ffffff" fill-opacity="0.08"><polygon points="36 34 24 34 24 22 36 22"/></g></g></svg>');
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
+  .hero-section::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at 30% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  /* 加载动画增强 */
+  .loading-spinner {
+    @apply animate-spin rounded-full border-4 border-gray-200;
+    border-top-color: #667eea;
+    filter: drop-shadow(0 4px 8px rgba(102, 126, 234, 0.3));
+  }
+
+  /* 空状态美化 */
+  .empty-state {
+    @apply text-center py-20 px-8 rounded-2xl relative overflow-hidden;
+    background: var(--gradient-surface);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  }
+
+  .empty-state::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at center, rgba(102, 126, 234, 0.05) 0%, transparent 70%);
   }
 }

@@ -5,6 +5,15 @@ const nextConfig = {
   },
   images: {
     domains: ['localhost'],
+    unoptimized: true, // 允许本地图片不优化
+  },
+  async rewrites() {
+    return [
+      {
+        source: '/uploads/:path*',
+        destination: '/uploads/:path*',
+      },
+    ]
   },
 }
 
