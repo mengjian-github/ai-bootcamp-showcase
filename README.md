@@ -4,14 +4,11 @@
 
 ## 🎬 功能演示
 
-<video width="100%" controls>
-  <source src="./public/videos/demo.mp4" type="video/mp4">
-  您的浏览器不支持视频标签。请点击 <a href="./public/videos/demo.mp4">这里</a> 下载视频查看演示。
-</video>
+![AI编程训练营作品展示平台演示](./public/videos/demo.gif)
 
-> 📹 **演示视频**：展示了平台的完整功能流程，包括用户注册登录、作品上传展示、投票互动、管理后台等核心特性。
+> 📹 **功能演示**：展示了平台的完整功能流程，包括用户注册登录、作品上传展示、投票互动、管理后台等核心特性。
 >
-> 💡 **提示**：如果视频无法播放，请直接访问 [`./public/videos/demo.mp4`](./public/videos/demo.mp4) 文件。
+> 💡 **提示**：如需查看完整高清演示视频，请访问 [`./public/videos/demo.mp4`](./public/videos/demo.mp4) 文件。
 
 ## ✨ 核心功能
 
