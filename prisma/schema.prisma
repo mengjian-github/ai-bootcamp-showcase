@@ -1,0 +1,102 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 训练营配置
+model Bootcamp {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  startDate   DateTime
+  endDate     DateTime?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  projects Project[]
+
+  @@map("bootcamps")
+}
+
+// 学员身份枚举
+enum UserRole {
+  COACH      // 教练
+  ACTIONIST  // 行动家
+  MEMBER     // 圈友
+  VOLUNTEER  // 志愿者
+  STAFF      // 工作人员
+}
+
+// 学员信息
+model User {
+  id           String   @id @default(cuid())
+  nickname     String
+  planetNumber String   @unique // 星球编号
+  role         UserRole
+  avatar       String?
+  email        String?  @unique
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  projects Project[]
+  votes    Vote[]
+
+  @@map("users")
+}
+
+// 作品类型枚举
+enum ProjectType {
+  HTML_FILE // HTML文件上传
+  LINK      // 作品链接
+}
+
+// 作品信息
+model Project {
+  id          String      @id @default(cuid())
+  title       String
+  description String?
+  type        ProjectType
+  htmlFile    String?     // HTML文件路径
+  projectUrl  String?     // 作品链接
+  coverImage  String      // 封面图片路径 (必传)
+  voteCount   Int         @default(0)
+  isApproved  Boolean     @default(false) // 是否审核通过
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // 关联
+  bootcampId String
+  bootcamp   Bootcamp @relation(fields: [bootcampId], references: [id], onDelete: Cascade)
+
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  votes Vote[]
+
+  @@map("projects")
+}
+
+// 投票记录
+model Vote {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  // 关联
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  voterId String
+  voter   User   @relation(fields: [voterId], references: [id], onDelete: Cascade)
+
+  // 一个用户对一个作品只能投一票
+  @@unique([projectId, voterId])
+  @@map("votes")
+}
