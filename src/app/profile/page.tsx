@@ -263,8 +263,8 @@ export default function ProfilePage() {
                       className="enhanced-select"
                       value={editData.role || ''}
                       onChange={(e) => setEditData({...editData, role: e.target.value})}
-                      onFocus={(e) => e.target.parentElement.classList.add('focused')}
-                      onBlur={(e) => e.target.parentElement.classList.remove('focused')}
+                      onFocus={(e) => e.target.parentElement?.classList.add('focused')}
+                      onBlur={(e) => e.target.parentElement?.classList.remove('focused')}
                     >
                       {USER_ROLES.map(role => (
                         <option key={role.value} value={role.value}>
@@ -288,8 +288,8 @@ export default function ProfilePage() {
                       className="enhanced-select"
                       value={editData.skillLevel || ''}
                       onChange={(e) => setEditData({...editData, skillLevel: e.target.value})}
-                      onFocus={(e) => e.target.parentElement.classList.add('focused')}
-                      onBlur={(e) => e.target.parentElement.classList.remove('focused')}
+                      onFocus={(e) => e.target.parentElement?.classList.add('focused')}
+                      onBlur={(e) => e.target.parentElement?.classList.remove('focused')}
                     >
                       {SKILL_LEVELS.map(level => (
                         <option key={level.value} value={level.value} title={level.description}>

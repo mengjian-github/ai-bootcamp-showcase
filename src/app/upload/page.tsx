@@ -212,8 +212,8 @@ export default function UploadPage() {
                       className="enhanced-select"
                       value={formData.bootcampId}
                       onChange={(e) => setFormData({...formData, bootcampId: e.target.value})}
-                      onFocus={(e) => e.target.parentElement.classList.add('focused')}
-                      onBlur={(e) => e.target.parentElement.classList.remove('focused')}
+                      onFocus={(e) => e.target.parentElement?.classList.add('focused')}
+                      onBlur={(e) => e.target.parentElement?.classList.remove('focused')}
                     >
                       <option value="">请选择训练营</option>
                       {bootcamps.map(bootcamp => (

@@ -137,8 +137,8 @@ export default function RegisterPage() {
                   className="enhanced-select"
                   value={formData.role}
                   onChange={(e) => setFormData({...formData, role: e.target.value})}
-                  onFocus={(e) => e.target.parentElement.classList.add('focused')}
-                  onBlur={(e) => e.target.parentElement.classList.remove('focused')}
+                  onFocus={(e) => e.target.parentElement?.classList.add('focused')}
+                  onBlur={(e) => e.target.parentElement?.classList.remove('focused')}
                 >
                   <option value="">请选择身份</option>
                   {USER_ROLES.map(role => (
@@ -160,8 +160,8 @@ export default function RegisterPage() {
                   className="enhanced-select"
                   value={formData.skillLevel}
                   onChange={(e) => setFormData({...formData, skillLevel: e.target.value})}
-                  onFocus={(e) => e.target.parentElement.classList.add('focused')}
-                  onBlur={(e) => e.target.parentElement.classList.remove('focused')}
+                  onFocus={(e) => e.target.parentElement?.classList.add('focused')}
+                  onBlur={(e) => e.target.parentElement?.classList.remove('focused')}
                 >
                   <option value="">请选择技术水平</option>
                   {SKILL_LEVELS.map(level => (

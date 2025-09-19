@@ -20,7 +20,15 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { nickname, planetNumber, role, avatar, email } = body
+    const { nickname, planetNumber, role, skillLevel, avatar, email, password } = body
+
+    // 检查必填字段
+    if (!nickname || !planetNumber || !role || !skillLevel || !password) {
+      return NextResponse.json(
+        { error: 'Missing required fields: nickname, planetNumber, role, skillLevel, password' },
+        { status: 400 }
+      )
+    }
 
     const existingUser = await prisma.user.findUnique({
       where: { planetNumber }
@@ -35,6 +43,8 @@ export async function POST(request: Request) {
         nickname,
         planetNumber,
         role,
+        skillLevel,
+        password,
         avatar: avatar || null,
         email: email || null
       }
