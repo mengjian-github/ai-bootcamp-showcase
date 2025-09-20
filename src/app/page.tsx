@@ -50,6 +50,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
   const [currentUser, setCurrentUser] = useState<any>(null)
+  const [votingStates, setVotingStates] = useState<Record<string, boolean>>({})
   const projectsPerPage = 6
 
   useEffect(() => {
@@ -120,6 +121,39 @@ export default function Home() {
       return
     }
 
+    // 防止重复点击
+    if (votingStates[projectId]) {
+      return
+    }
+
+    // 设置投票状态
+    setVotingStates(prev => ({ ...prev, [projectId]: true }))
+
+    // 获取当前项目信息进行乐观更新
+    const currentProject = projects.find(p => p.id === projectId)
+    if (!currentProject) {
+      setVotingStates(prev => ({ ...prev, [projectId]: false }))
+      return
+    }
+
+    // 乐观更新 - 立即更新UI
+    const optimisticUpdate = !currentProject.hasVoted
+    const optimisticVoteCount = optimisticUpdate
+      ? currentProject.voteCount + 1
+      : currentProject.voteCount - 1
+
+    setProjects(prevProjects =>
+      prevProjects.map(project =>
+        project.id === projectId
+          ? {
+              ...project,
+              hasVoted: optimisticUpdate,
+              voteCount: optimisticVoteCount
+            }
+          : project
+      )
+    )
+
     try {
       const response = await fetch(`/api/projects/${projectId}/vote`, {
         method: 'POST',
@@ -132,20 +166,69 @@ export default function Home() {
       const data = await response.json()
 
       if (response.ok) {
-        fetchProjects()
-        toast.success('投票成功！感谢你的支持 ❤️')
-      } else if (response.status === 401) {
-        toast.error('请先登录后再投票')
-        setTimeout(() => {
-          window.location.href = '/login'
-        }, 1500)
-      } else if (response.status === 403) {
-        toast.error(data.message || '投票失败')
+        // 使用服务器返回的准确投票数更新
+        setProjects(prevProjects =>
+          prevProjects.map(project =>
+            project.id === projectId
+              ? {
+                  ...project,
+                  hasVoted: data.voted,
+                  voteCount: data.voteCount
+                }
+              : project
+          )
+        )
+
+        if (data.voted) {
+          toast.success('投票成功！感谢你的支持 ❤️')
+        } else {
+          toast.success('已取消投票')
+        }
       } else {
-        toast.error('投票失败，请稍后重试')
+        // 投票失败，回滚乐观更新
+        setProjects(prevProjects =>
+          prevProjects.map(project =>
+            project.id === projectId
+              ? {
+                  ...project,
+                  hasVoted: currentProject.hasVoted,
+                  voteCount: currentProject.voteCount
+                }
+              : project
+          )
+        )
+
+        if (response.status === 401) {
+          toast.error('请先登录后再投票')
+          setTimeout(() => {
+            window.location.href = '/login'
+          }, 1500)
+        } else if (response.status === 403) {
+          toast.error(data.message || '投票失败')
+        } else {
+          toast.error('投票失败，请稍后重试')
+        }
       }
     } catch (error) {
       console.error('Error voting:', error)
+
+      // 网络错误，回滚乐观更新
+      setProjects(prevProjects =>
+        prevProjects.map(project =>
+          project.id === projectId
+            ? {
+                ...project,
+                hasVoted: currentProject.hasVoted,
+                voteCount: currentProject.voteCount
+              }
+            : project
+        )
+      )
+
+      toast.error('网络错误，请稍后重试')
+    } finally {
+      // 清除投票状态
+      setVotingStates(prev => ({ ...prev, [projectId]: false }))
     }
   }
 
@@ -593,13 +676,22 @@ export default function Home() {
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                     onClick={() => handleVote(project.id)}
-                    className="flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-300 hover:bg-red-50 group-vote"
+                    disabled={votingStates[project.id]}
+                    className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-300 hover:bg-red-50 group-vote ${
+                      votingStates[project.id] ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
                   >
                     <motion.div
                       animate={project.hasVoted ? { scale: [1, 1.2, 1] } : {}}
                       transition={{ duration: 0.3 }}
                     >
-                      {project.hasVoted ? (
+                      {votingStates[project.id] ? (
+                        <motion.div
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                          className="w-5 h-5 border-2 border-red-300 border-t-red-500 rounded-full"
+                        />
+                      ) : project.hasVoted ? (
                         <Heart className="w-5 h-5 text-red-500 fill-current" />
                       ) : (
                         <Heart className="w-5 h-5 text-gray-400 group-vote-hover:text-red-400" />

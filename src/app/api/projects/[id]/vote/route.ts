@@ -30,89 +30,119 @@ export async function POST(
     const projectId = params.id
     const voterId = decoded.userId
 
-    // 检查用户是否存在
-    const user = await prisma.user.findUnique({
-      where: { id: voterId },
-      select: { id: true }
-    })
+    // 使用事务和优化的查询 - 一次性验证所有条件
+    const result = await prisma.$transaction(async (tx) => {
+      // 一次查询获取所有需要的信息
+      const [user, project, existingVote] = await Promise.all([
+        tx.user.findUnique({
+          where: { id: voterId },
+          select: { id: true }
+        }),
+        tx.project.findUnique({
+          where: { id: projectId },
+          select: { id: true, isApproved: true, authorId: true, voteCount: true }
+        }),
+        tx.vote.findUnique({
+          where: {
+            projectId_voterId: {
+              projectId,
+              voterId
+            }
+          },
+          select: { id: true }
+        })
+      ])
 
-    if (!user) {
-      return NextResponse.json(
-        { message: '用户不存在' },
-        { status: 404 }
-      )
-    }
+      // 验证条件
+      if (!user) {
+        throw new Error('USER_NOT_FOUND')
+      }
 
-    // 检查作品是否存在且已审核
-    const project = await prisma.project.findUnique({
-      where: { id: projectId },
-      select: { id: true, isApproved: true, authorId: true }
-    })
+      if (!project) {
+        throw new Error('PROJECT_NOT_FOUND')
+      }
 
-    if (!project) {
-      return NextResponse.json(
-        { message: '作品不存在' },
-        { status: 404 }
-      )
-    }
+      if (!project.isApproved) {
+        throw new Error('PROJECT_NOT_APPROVED')
+      }
 
-    if (!project.isApproved) {
-      return NextResponse.json(
-        { message: '只能为已审核的作品投票' },
-        { status: 403 }
-      )
-    }
+      if (project.authorId === voterId) {
+        throw new Error('CANNOT_VOTE_OWN_PROJECT')
+      }
 
-    // 用户不能为自己的作品投票
-    if (project.authorId === voterId) {
-      return NextResponse.json(
-        { message: '不能为自己的作品投票' },
-        { status: 403 }
-      )
-    }
+      // 执行投票操作
+      if (existingVote) {
+        // 取消投票 - 使用原子操作
+        await Promise.all([
+          tx.vote.delete({
+            where: { id: existingVote.id }
+          }),
+          tx.project.update({
+            where: { id: projectId },
+            data: { voteCount: { decrement: 1 } }
+          })
+        ])
 
-    const existingVote = await prisma.vote.findUnique({
-      where: {
-        projectId_voterId: {
-          projectId,
-          voterId
+        return {
+          voted: false,
+          message: '已取消投票',
+          voteCount: project.voteCount - 1
+        }
+      } else {
+        // 添加投票 - 使用原子操作
+        await Promise.all([
+          tx.vote.create({
+            data: {
+              projectId,
+              voterId
+            }
+          }),
+          tx.project.update({
+            where: { id: projectId },
+            data: { voteCount: { increment: 1 } }
+          })
+        ])
+
+        return {
+          voted: true,
+          message: '投票成功',
+          voteCount: project.voteCount + 1
         }
       }
     })
 
-    if (existingVote) {
-      // 取消投票
-      await prisma.vote.delete({
-        where: { id: existingVote.id }
-      })
+    return NextResponse.json(result)
 
-      await prisma.project.update({
-        where: { id: projectId },
-        data: { voteCount: { decrement: 1 } }
-      })
-
-      return NextResponse.json({ voted: false, message: '已取消投票' })
-    } else {
-      // 添加投票
-      await prisma.vote.create({
-        data: {
-          projectId,
-          voterId
-        }
-      })
-
-      await prisma.project.update({
-        where: { id: projectId },
-        data: { voteCount: { increment: 1 } }
-      })
-
-      return NextResponse.json({ voted: true, message: '投票成功' })
-    }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error handling vote:', error)
-    return NextResponse.json(
-      { error: 'Failed to handle vote' },
-      { status: 500 }
-    )
+
+    // 处理业务逻辑错误
+    switch (error.message) {
+      case 'USER_NOT_FOUND':
+        return NextResponse.json(
+          { message: '用户不存在' },
+          { status: 404 }
+        )
+      case 'PROJECT_NOT_FOUND':
+        return NextResponse.json(
+          { message: '作品不存在' },
+          { status: 404 }
+        )
+      case 'PROJECT_NOT_APPROVED':
+        return NextResponse.json(
+          { message: '只能为已审核的作品投票' },
+          { status: 403 }
+        )
+      case 'CANNOT_VOTE_OWN_PROJECT':
+        return NextResponse.json(
+          { message: '不能为自己的作品投票' },
+          { status: 403 }
+        )
+      default:
+        return NextResponse.json(
+          { error: 'Failed to handle vote' },
+          { status: 500 }
+        )
+    }
   }
 }
