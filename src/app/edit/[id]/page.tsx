@@ -56,15 +56,14 @@ export default function EditProjectPage() {
           return
         }
 
-        const response = await fetch(`/api/projects?admin=true`, {
+        const response = await fetch(`/api/projects/${projectId}`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
         })
 
         if (response.ok) {
-          const projects = await response.json()
-          const currentProject = projects.find((p: Project) => p.id === projectId)
+          const currentProject = await response.json()
 
           if (currentProject) {
             setProject(currentProject)

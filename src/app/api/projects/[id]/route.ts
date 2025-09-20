@@ -8,6 +8,76 @@ export const maxDuration = 45
 
 const prisma = new PrismaClient()
 
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    // 获取并验证JWT token
+    const authHeader = request.headers.get('authorization')
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json(
+        { message: '需要登录' },
+        { status: 401 }
+      )
+    }
+
+    const token = authHeader.split(' ')[1]
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as any
+
+    // 获取作品信息
+    const project = await prisma.project.findUnique({
+      where: {
+        id: params.id
+      },
+      include: {
+        bootcamp: {
+          select: {
+            id: true,
+            name: true
+          }
+        },
+        author: {
+          select: {
+            id: true,
+            nickname: true,
+            planetNumber: true,
+            role: true
+          }
+        },
+        _count: {
+          select: {
+            votes: true
+          }
+        }
+      }
+    })
+
+    if (!project) {
+      return NextResponse.json(
+        { message: '作品不存在' },
+        { status: 404 }
+      )
+    }
+
+    // 检查用户是否有权限查看这个作品（只能查看自己的作品，或者管理员可以查看任何作品）
+    if (project.authorId !== decoded.userId && decoded.role !== 'ADMIN') {
+      return NextResponse.json(
+        { message: '无权限查看此作品' },
+        { status: 403 }
+      )
+    }
+
+    return NextResponse.json(project)
+  } catch (error) {
+    console.error('Error fetching project:', error)
+    return NextResponse.json(
+      { message: '获取作品信息失败' },
+      { status: 500 }
+    )
+  }
+}
+
 export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
