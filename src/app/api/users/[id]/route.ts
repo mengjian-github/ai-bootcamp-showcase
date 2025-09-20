@@ -32,11 +32,21 @@ export async function PUT(
     const body = await request.json()
     const { nickname, role, skillLevel, email } = body
 
+    console.log('Update user request body:', body)
+
     // 验证输入
     if (!nickname || !role || !skillLevel) {
       return NextResponse.json(
         { message: '昵称、身份和技术水平不能为空' },
         { status: 400 }
+      )
+    }
+
+    // 防止普通用户将自己的角色改为管理员
+    if (role === 'ADMIN' && decoded.role !== 'ADMIN') {
+      return NextResponse.json(
+        { message: '无权限设置为管理员角色' },
+        { status: 403 }
       )
     }
 

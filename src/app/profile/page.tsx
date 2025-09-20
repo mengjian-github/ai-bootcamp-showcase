@@ -71,7 +71,11 @@ export default function ProfilePage() {
     try {
       const parsedUser = JSON.parse(userData)
       setUser(parsedUser)
-      setEditData(parsedUser)
+      // 确保 editData 包含默认值，特别是 skillLevel
+      setEditData({
+        ...parsedUser,
+        skillLevel: parsedUser.skillLevel || 'BEGINNER' // 默认为初级
+      })
       fetchUserProjects(parsedUser.id)
     } catch (error) {
       console.error('Error parsing user data:', error)
@@ -102,13 +106,23 @@ export default function ProfilePage() {
     if (!user) return
 
     try {
+      // 确保包含所有必要的字段，并设置默认值
+      const updateData = {
+        nickname: editData.nickname || user.nickname,
+        role: editData.role || user.role,
+        skillLevel: editData.skillLevel || 'BEGINNER',
+        email: editData.email || user.email
+      }
+
+      console.log('Sending update data:', updateData)
+
       const response = await fetch(`/api/users/${user.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
-        body: JSON.stringify(editData)
+        body: JSON.stringify(updateData)
       })
 
       if (response.ok) {
@@ -304,7 +318,13 @@ export default function ProfilePage() {
                       value={editData.role || ''}
                       onChange={(e) => setEditData({...editData, role: e.target.value})}
                     >
-                      {USER_ROLES.map(role => (
+                      {USER_ROLES.filter(role => {
+                        // 如果当前用户不是管理员，则不能选择管理员角色
+                        if (role.value === 'ADMIN' && user.role !== 'ADMIN') {
+                          return false
+                        }
+                        return true
+                      }).map(role => (
                         <option key={role.value} value={role.value} className="bg-gray-800">
                           {role.label}
                         </option>
@@ -326,7 +346,7 @@ export default function ProfilePage() {
                   {editMode ? (
                     <select
                       className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent backdrop-blur-sm"
-                      value={editData.skillLevel || ''}
+                      value={editData.skillLevel || 'BEGINNER'}
                       onChange={(e) => setEditData({...editData, skillLevel: e.target.value})}
                     >
                       {SKILL_LEVELS.map(level => (
