@@ -673,7 +673,7 @@ export default function Home() {
                     <motion.button
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      onClick={() => router.push(`/project/${project.id}`)}
+                      onClick={() => window.open(`/project/${project.id}`, '_blank')}
                       className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-300 shadow-md hover:shadow-lg"
                     >
                       <Star className="w-4 h-4" />
