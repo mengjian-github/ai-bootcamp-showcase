@@ -13,17 +13,18 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    // 获取并验证JWT token
+    // 获取当前用户ID（如果有登录）
+    let currentUserId: string | null = null
     const authHeader = request.headers.get('authorization')
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json(
-        { message: '需要登录' },
-        { status: 401 }
-      )
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1]
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as any
+        currentUserId = decoded.userId
+      } catch (error) {
+        // Token无效，继续不带用户信息
+      }
     }
-
-    const token = authHeader.split(' ')[1]
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as any
 
     // 获取作品信息
     const project = await prisma.project.findUnique({
@@ -42,14 +43,20 @@ export async function GET(
             id: true,
             nickname: true,
             planetNumber: true,
-            role: true
+            role: true,
+            skillLevel: true,
+            avatar: true
           }
         },
         _count: {
           select: {
             votes: true
           }
-        }
+        },
+        votes: currentUserId ? {
+          where: { voterId: currentUserId },
+          select: { id: true }
+        } : false
       }
     })
 
@@ -60,15 +67,36 @@ export async function GET(
       )
     }
 
-    // 检查用户是否有权限查看这个作品（只能查看自己的作品，或者管理员可以查看任何作品）
-    if (project.authorId !== decoded.userId && decoded.role !== 'ADMIN') {
-      return NextResponse.json(
-        { message: '无权限查看此作品' },
-        { status: 403 }
-      )
+    // 如果作品未审核，只有作者和管理员可以查看
+    if (!project.isApproved) {
+      if (!currentUserId) {
+        return NextResponse.json(
+          { message: '作品不存在或未发布' },
+          { status: 404 }
+        )
+      }
+
+      const userToken = authHeader!.split(' ')[1]
+      const decoded = jwt.verify(userToken, process.env.JWT_SECRET || 'fallback-secret') as any
+
+      if (project.authorId !== decoded.userId && decoded.role !== 'ADMIN') {
+        return NextResponse.json(
+          { message: '作品不存在或未发布' },
+          { status: 404 }
+        )
+      }
     }
 
-    return NextResponse.json(project)
+    // 添加用户是否已投票的标识和投票数
+    const projectWithVoteStatus = {
+      ...project,
+      hasVoted: currentUserId ? project.votes.length > 0 : false,
+      voteCount: project._count.votes,
+      votes: undefined, // 移除votes字段，只保留hasVoted
+      _count: undefined // 移除_count字段，已经用voteCount代替
+    }
+
+    return NextResponse.json(projectWithVoteStatus)
   } catch (error) {
     console.error('Error fetching project:', error)
     return NextResponse.json(

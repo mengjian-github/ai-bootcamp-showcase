@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { TrendingUp, Users, Award, Star, ExternalLink, Heart, Edit, Trash2 } from 'lucide-react'
+import { TrendingUp, Users, Award, Star, ExternalLink, Heart, Edit, Trash2, Search, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useRouter } from 'next/navigation'
 
@@ -51,6 +51,7 @@ export default function Home() {
   const [currentPage, setCurrentPage] = useState(1)
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [votingStates, setVotingStates] = useState<Record<string, boolean>>({})
+  const [searchQuery, setSearchQuery] = useState<string>('')
   const projectsPerPage = 6
 
   useEffect(() => {
@@ -282,9 +283,27 @@ export default function Home() {
     return currentUser && (currentUser.id === project.author.id || currentUser.role === 'ADMIN')
   }
 
-  const filteredProjects = selectedBootcamp === 'all'
-    ? (Array.isArray(projects) ? projects : [])
-    : (Array.isArray(projects) ? projects.filter(p => p.bootcamp.id === selectedBootcamp) : [])
+  const filteredProjects = (() => {
+    let filtered = Array.isArray(projects) ? projects : []
+
+    // 按训练营过滤
+    if (selectedBootcamp !== 'all') {
+      filtered = filtered.filter(p => p.bootcamp.id === selectedBootcamp)
+    }
+
+    // 按搜索词过滤
+    if (searchQuery.trim()) {
+      const query = searchQuery.trim().toLowerCase()
+      filtered = filtered.filter(p =>
+        p.title.toLowerCase().includes(query) ||
+        (p.description && p.description.toLowerCase().includes(query)) ||
+        p.author.nickname.toLowerCase().includes(query) ||
+        p.bootcamp.name.toLowerCase().includes(query)
+      )
+    }
+
+    return filtered
+  })()
 
   // 分页逻辑
   const totalPages = Math.ceil(filteredProjects.length / projectsPerPage)
@@ -295,7 +314,7 @@ export default function Home() {
   // 重置页码当过滤条件改变时
   useEffect(() => {
     setCurrentPage(1)
-  }, [selectedBootcamp])
+  }, [selectedBootcamp, searchQuery])
 
   if (loading) {
     return (
@@ -437,101 +456,115 @@ export default function Home() {
       </motion.div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
-        {/* Enhanced 训练营选择器 */}
+        {/* 整合的搜索和筛选工具栏 */}
         <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.6 }}
-          className="mb-16"
+          className="mb-12"
         >
-          <div className="text-center mb-10">
+          {/* 页面标题 */}
+          <div className="text-center mb-8">
             <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
-              选择训练营
+              探索精彩作品
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              每个训练营都有独特的创意方向，探索不同领域的AI编程作品
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+              搜索、筛选和发现来自不同训练营的优秀AI编程作品
             </p>
           </div>
 
-          <div className="flex flex-wrap justify-center gap-4">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setSelectedBootcamp('all')}
-              className={`group relative overflow-hidden px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
-                selectedBootcamp === 'all'
-                  ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
-                  : 'bg-white/60 backdrop-blur-sm text-gray-700 border border-gray-200 hover:bg-white/80 hover:border-blue-300 hover:text-blue-600'
-              }`}
-            >
-              <div className="flex items-center space-x-2">
-                <Users className="w-4 h-4" />
-                <span>全部作品 ({projects.length})</span>
-              </div>
-              {selectedBootcamp === 'all' && (
-                <motion.div
-                  layoutId="activeTab"
-                  className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl"
-                  style={{ zIndex: -1 }}
+          {/* 搜索和筛选工具栏 */}
+          <div className="bg-white/60 backdrop-blur-sm rounded-2xl border border-white/50 shadow-lg p-6">
+            {/* 搜索框 */}
+            <div className="mb-6">
+              <div className="relative max-w-2xl mx-auto">
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 w-5 h-5 z-10 pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder="搜索作品标题、作者昵称或训练营..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-12 pr-12 py-3 text-lg bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 placeholder-gray-400"
                 />
-              )}
-            </motion.button>
+                {searchQuery && (
+                  <motion.button
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors duration-200"
+                  >
+                    <X className="w-5 h-5" />
+                  </motion.button>
+                )}
+              </div>
+            </div>
 
-            {bootcamps.map((bootcamp, index) => (
+            {/* 训练营筛选标签 */}
+            <div className="flex flex-wrap justify-center gap-3">
               <motion.button
-                key={bootcamp.id}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: index * 0.1 }}
-                onClick={() => setSelectedBootcamp(bootcamp.id)}
-                className={`group relative overflow-hidden px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
-                  selectedBootcamp === bootcamp.id
-                    ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
-                    : 'bg-white/60 backdrop-blur-sm text-gray-700 border border-gray-200 hover:bg-white/80 hover:border-blue-300 hover:text-blue-600'
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setSelectedBootcamp('all')}
+                className={`relative px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
+                  selectedBootcamp === 'all'
+                    ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-md'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
                 <div className="flex items-center space-x-2">
-                  <Award className="w-4 h-4" />
-                  <span>{bootcamp.name} ({bootcamp._count.projects})</span>
+                  <Users className="w-4 h-4" />
+                  <span>全部 ({projects.length})</span>
                 </div>
-                {selectedBootcamp === bootcamp.id && (
-                  <motion.div
-                    layoutId="activeTab"
-                    className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl"
-                    style={{ zIndex: -1 }}
-                  />
-                )}
               </motion.button>
-            ))}
+
+              {bootcamps.map((bootcamp, index) => (
+                <motion.button
+                  key={bootcamp.id}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.05 }}
+                  onClick={() => setSelectedBootcamp(bootcamp.id)}
+                  className={`relative px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
+                    selectedBootcamp === bootcamp.id
+                      ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-md'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  <div className="flex items-center space-x-2">
+                    <Award className="w-4 h-4" />
+                    <span>{bootcamp.name} ({bootcamp._count.projects})</span>
+                  </div>
+                </motion.button>
+              ))}
+            </div>
+
+            {/* 搜索结果提示 */}
+            {(searchQuery || selectedBootcamp !== 'all') && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-4 text-center"
+              >
+                <div className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-50 rounded-lg">
+                  <TrendingUp className="w-4 h-4 text-blue-500" />
+                  <span className="text-sm text-blue-700">
+                    {searchQuery && selectedBootcamp !== 'all'
+                      ? `在 "${bootcamps.find(b => b.id === selectedBootcamp)?.name || '选中训练营'}" 中找到 ${filteredProjects.length} 个相关作品`
+                      : searchQuery
+                        ? `找到 ${filteredProjects.length} 个相关作品`
+                        : `${bootcamps.find(b => b.id === selectedBootcamp)?.name || '选中训练营'} 共有 ${filteredProjects.length} 个作品`
+                    }
+                  </span>
+                </div>
+              </motion.div>
+            )}
           </div>
         </motion.div>
 
-        {/* Enhanced 作品展示区 */}
-        <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="mb-12"
-        >
-          <div className="text-center mb-12">
-            <h3 className="text-3xl font-bold mb-4 bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
-              {selectedBootcamp === 'all' ? '全部精彩作品' : bootcamps.find(b => b.id === selectedBootcamp)?.name}
-            </h3>
-            <div className="flex items-center justify-center space-x-6 text-sm">
-              <div className="flex items-center space-x-2 px-4 py-2 bg-blue-50 rounded-full">
-                <Award className="w-4 h-4 text-blue-500" />
-                <span className="font-semibold text-blue-700">{filteredProjects.length}</span>
-                <span className="text-blue-600">个作品</span>
-              </div>
-              <div className="flex items-center space-x-2 px-4 py-2 bg-purple-50 rounded-full">
-                <TrendingUp className="w-4 h-4 text-purple-500" />
-                <span className="text-purple-600">按投票数排序</span>
-              </div>
-            </div>
-          </div>
-        </motion.div>
 
         <motion.div
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
@@ -640,11 +673,11 @@ export default function Home() {
                     <motion.button
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      onClick={() => viewProject(project)}
+                      onClick={() => router.push(`/project/${project.id}`)}
                       className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-300 shadow-md hover:shadow-lg"
                     >
-                      <ExternalLink className="w-4 h-4" />
-                      <span>查看作品</span>
+                      <Star className="w-4 h-4" />
+                      <span>查看详情</span>
                     </motion.button>
 
                     {/* 编辑和删除按钮 - 只有作者和管理员可见 */}
@@ -728,21 +761,90 @@ export default function Home() {
             </motion.button>
 
             <div className="flex space-x-2">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                <motion.button
-                  key={page}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={() => setCurrentPage(page)}
-                  className={`w-12 h-12 text-sm font-semibold rounded-xl transition-all duration-300 ${
-                    currentPage === page
-                      ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
-                      : 'text-gray-600 bg-white/80 backdrop-blur-sm border border-gray-200 hover:bg-white hover:border-blue-300 hover:text-blue-600'
-                  }`}
-                >
-                  {page}
-                </motion.button>
-              ))}
+              {(() => {
+                const pages = []
+                const showPages = 5 // 显示的页码数量
+                const halfShow = Math.floor(showPages / 2)
+
+                let startPage = Math.max(1, currentPage - halfShow)
+                let endPage = Math.min(totalPages, currentPage + halfShow)
+
+                // 调整边界情况
+                if (endPage - startPage + 1 < showPages) {
+                  if (startPage === 1) {
+                    endPage = Math.min(totalPages, startPage + showPages - 1)
+                  } else {
+                    startPage = Math.max(1, endPage - showPages + 1)
+                  }
+                }
+
+                // 第一页
+                if (startPage > 1) {
+                  pages.push(
+                    <motion.button
+                      key={1}
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => setCurrentPage(1)}
+                      className="w-12 h-12 text-sm font-semibold rounded-xl transition-all duration-300 text-gray-600 bg-white/80 backdrop-blur-sm border border-gray-200 hover:bg-white hover:border-blue-300 hover:text-blue-600"
+                    >
+                      1
+                    </motion.button>
+                  )
+
+                  if (startPage > 2) {
+                    pages.push(
+                      <span key="ellipsis1" className="flex items-center px-2 text-gray-400">
+                        ...
+                      </span>
+                    )
+                  }
+                }
+
+                // 中间页码
+                for (let i = startPage; i <= endPage; i++) {
+                  pages.push(
+                    <motion.button
+                      key={i}
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => setCurrentPage(i)}
+                      className={`w-12 h-12 text-sm font-semibold rounded-xl transition-all duration-300 ${
+                        currentPage === i
+                          ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
+                          : 'text-gray-600 bg-white/80 backdrop-blur-sm border border-gray-200 hover:bg-white hover:border-blue-300 hover:text-blue-600'
+                      }`}
+                    >
+                      {i}
+                    </motion.button>
+                  )
+                }
+
+                // 最后一页
+                if (endPage < totalPages) {
+                  if (endPage < totalPages - 1) {
+                    pages.push(
+                      <span key="ellipsis2" className="flex items-center px-2 text-gray-400">
+                        ...
+                      </span>
+                    )
+                  }
+
+                  pages.push(
+                    <motion.button
+                      key={totalPages}
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => setCurrentPage(totalPages)}
+                      className="w-12 h-12 text-sm font-semibold rounded-xl transition-all duration-300 text-gray-600 bg-white/80 backdrop-blur-sm border border-gray-200 hover:bg-white hover:border-blue-300 hover:text-blue-600"
+                    >
+                      {totalPages}
+                    </motion.button>
+                  )
+                }
+
+                return pages
+              })()}
             </div>
 
             <motion.button
