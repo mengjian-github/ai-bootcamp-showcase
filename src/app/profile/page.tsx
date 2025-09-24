@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, User, Star, Target, BarChart3, Mail, Edit, Trash2, ExternalLink, Upload } from 'lucide-react'
+import { ArrowLeft, User, Star, Target, BarChart3, Mail, Edit, Trash2, ExternalLink, Upload, Heart } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 interface User {
@@ -53,8 +53,14 @@ const SKILL_LEVELS = [
 export default function ProfilePage() {
   const [user, setUser] = useState<User | null>(null)
   const [projects, setProjects] = useState<Project[]>([])
+  const [favoriteProjects, setFavoriteProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'info' | 'projects'>('info')
+  const [favoritesLoading, setFavoritesLoading] = useState(false)
+  const [activeTab, setActiveTab] = useState<'info' | 'projects' | 'favorites'>('info')
+  const [currentFavoritePage, setCurrentFavoritePage] = useState(1)
+  const favoritesPerPage = 6
+  const [totalFavorites, setTotalFavorites] = useState(0)
+  const [totalFavoritePages, setTotalFavoritePages] = useState(0)
   const [editMode, setEditMode] = useState(false)
   const [editData, setEditData] = useState<Partial<User>>({})
   const router = useRouter()
@@ -77,6 +83,7 @@ export default function ProfilePage() {
         skillLevel: parsedUser.skillLevel || 'BEGINNER' // 默认为初级
       })
       fetchUserProjects(parsedUser.id)
+      fetchUserFavorites(parsedUser.id) // 页面加载时就获取喜欢的作品
     } catch (error) {
       console.error('Error parsing user data:', error)
       router.push('/login')
@@ -99,6 +106,30 @@ export default function ProfilePage() {
       console.error('Error fetching user projects:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchUserFavorites = async (userId: string, page: number = 1) => {
+    setFavoritesLoading(true)
+    try {
+      const response = await fetch(`/api/users/${userId}/favorites?page=${page}&limit=${favoritesPerPage}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setFavoriteProjects(data.projects)
+        setTotalFavorites(data.totalCount)
+        setTotalFavoritePages(data.totalPages)
+      } else {
+        console.error('Error fetching favorites:', response.statusText)
+      }
+    } catch (error) {
+      console.error('Error fetching user favorites:', error)
+    } finally {
+      setFavoritesLoading(false)
     }
   }
 
@@ -234,6 +265,17 @@ export default function ProfilePage() {
                 }`}
               >
                 📁 我的作品 ({projects.length})
+              </button>
+              <button
+                onClick={() => setActiveTab('favorites')}
+                className={`px-6 py-3 rounded-lg font-medium transition-all ${
+                  activeTab === 'favorites'
+                    ? 'bg-white/20 text-white shadow-lg'
+                    : 'text-white/70 hover:text-white hover:bg-white/10'
+                }`}
+              >
+                <Heart className="w-4 h-4 inline mr-2" />
+                我喜欢 ({totalFavorites})
               </button>
             </div>
           </div>
@@ -522,6 +564,183 @@ export default function ProfilePage() {
                       </div>
                     </motion.div>
                   ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'favorites' && (
+            <div className="space-y-6">
+              {/* 喜欢作品列表头部 */}
+              <div className="flex justify-between items-center">
+                <h3 className="text-xl font-bold text-white">我喜欢的作品</h3>
+                {totalFavorites > 0 && (
+                  <div className="text-sm text-white/70">
+                    共 {totalFavorites} 个作品，每页显示 {favoritesPerPage} 个
+                  </div>
+                )}
+              </div>
+
+              {/* 加载状态 */}
+              {favoritesLoading ? (
+                <div className="text-center py-16">
+                  <div className="loading-spinner w-12 h-12 mx-auto mb-4"></div>
+                  <p className="text-white/60">加载中...</p>
+                </div>
+              ) : favoriteProjects.length === 0 ? (
+                <div className="text-center py-16">
+                  <div className="text-6xl mb-6">💝</div>
+                  <h4 className="text-xl font-bold mb-4 text-white">暂无喜欢的作品</h4>
+                  <p className="text-white/60 mb-8">去发现一些优秀的作品吧！</p>
+                  <button
+                    onClick={() => router.push('/')}
+                    className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-xl font-medium transition-all flex items-center gap-2 mx-auto"
+                  >
+                    <Heart className="w-5 h-5" />
+                    浏览作品
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {favoriteProjects.map((project) => (
+                    <motion.div
+                      key={project.id}
+                      whileHover={{ y: -2 }}
+                      className="bg-white/10 rounded-xl p-6 border border-white/20 hover:border-white/40 transition-all backdrop-blur-sm"
+                    >
+                      {/* 封面图 */}
+                      <div className="aspect-video bg-white/5 rounded-lg mb-4 overflow-hidden">
+                        {project.coverImage ? (
+                          <img
+                            src={project.coverImage}
+                            alt={project.title}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex items-center justify-center h-full text-white/40">
+                            封面图
+                          </div>
+                        )}
+                      </div>
+
+                      {/* 作品信息 */}
+                      <div className="flex justify-between items-start mb-2">
+                        <h4 className="text-lg font-bold text-white flex-1">
+                          {project.title}
+                        </h4>
+                        <span className={`px-2 py-1 rounded-lg text-xs font-medium ${
+                          project.isApproved
+                            ? 'bg-green-500/20 text-green-300 border border-green-500/30'
+                            : 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30'
+                        }`}>
+                          {project.isApproved ? '已审核' : '待审核'}
+                        </span>
+                      </div>
+
+                      <p className="text-white/70 text-sm mb-3 line-clamp-2">
+                        {project.description || '暂无描述'}
+                      </p>
+
+                      {/* 作者和投票信息 */}
+                      <div className="flex items-center justify-between text-sm text-white/60 mb-2">
+                        <span>作者：{project.author?.nickname}</span>
+                        <span className="flex items-center gap-1">
+                          ❤️ {project.voteCount}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between text-sm text-white/60 mb-4">
+                        <span>{project.bootcamp.name}</span>
+                        <span className="text-xs">
+                          {project.likedAt && new Date(project.likedAt).toLocaleDateString('zh-CN')} 喜欢
+                        </span>
+                      </div>
+
+                      {/* 操作按钮 */}
+                      <div className="flex justify-between items-center">
+                        <div className="flex space-x-2">
+                          {project.type === 'LINK' && project.projectUrl && (
+                            <a
+                              href={project.projectUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-sm px-3 py-1 bg-blue-500/20 text-blue-300 rounded-lg hover:bg-blue-500/30 transition-colors flex items-center gap-1"
+                            >
+                              <ExternalLink className="w-3 h-3" />
+                              查看
+                            </a>
+                          )}
+                          {project.type === 'HTML_FILE' && project.htmlFile && (
+                            <a
+                              href={project.htmlFile}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-sm px-3 py-1 bg-blue-500/20 text-blue-300 rounded-lg hover:bg-blue-500/30 transition-colors flex items-center gap-1"
+                            >
+                              <ExternalLink className="w-3 h-3" />
+                              预览
+                            </a>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => router.push(`/project/${project.id}`)}
+                          className="text-sm px-3 py-1 bg-purple-500/20 text-purple-300 rounded-lg hover:bg-purple-500/30 transition-colors flex items-center gap-1"
+                        >
+                          <ExternalLink className="w-3 h-3" />
+                          详情
+                        </button>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+
+              {/* 分页控件 */}
+              {totalFavoritePages > 1 && (
+                <div className="flex justify-center items-center space-x-3 mt-8">
+                  <button
+                    onClick={() => {
+                      const newPage = Math.max(1, currentFavoritePage - 1)
+                      setCurrentFavoritePage(newPage)
+                      if (user) fetchUserFavorites(user.id, newPage)
+                    }}
+                    disabled={currentFavoritePage === 1 || favoritesLoading}
+                    className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white/70 bg-white/10 border border-white/20 rounded-lg hover:bg-white/20 hover:border-white/40 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                  >
+                    <span>上一页</span>
+                  </button>
+
+                  <div className="flex space-x-1">
+                    {Array.from({ length: totalFavoritePages }, (_, i) => i + 1).map((page) => (
+                      <button
+                        key={page}
+                        onClick={() => {
+                          setCurrentFavoritePage(page)
+                          if (user) fetchUserFavorites(user.id, page)
+                        }}
+                        disabled={favoritesLoading}
+                        className={`w-10 h-10 text-sm font-medium rounded-lg transition-all duration-200 ${
+                          currentFavoritePage === page
+                            ? 'bg-purple-500 text-white shadow-md'
+                            : 'text-white/70 bg-white/10 border border-white/20 hover:bg-white/20 hover:border-white/40'
+                        } disabled:opacity-50 disabled:cursor-not-allowed`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      const newPage = Math.min(totalFavoritePages, currentFavoritePage + 1)
+                      setCurrentFavoritePage(newPage)
+                      if (user) fetchUserFavorites(user.id, newPage)
+                    }}
+                    disabled={currentFavoritePage === totalFavoritePages || favoritesLoading}
+                    className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white/70 bg-white/10 border border-white/20 rounded-lg hover:bg-white/20 hover:border-white/40 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                  >
+                    <span>下一页</span>
+                  </button>
                 </div>
               )}
             </div>
