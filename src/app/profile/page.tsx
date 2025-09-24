@@ -30,6 +30,12 @@ interface Project {
     id: string
     name: string
   }
+  author?: {
+    id: string
+    nickname: string
+    planetNumber: string
+  }
+  likedAt?: string | Date
   _count: {
     votes: number
   }
