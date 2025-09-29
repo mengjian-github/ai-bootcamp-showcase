@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { ArrowLeft, User, Star, Target, BarChart3, Mail, Edit, Trash2, ExternalLink, Upload, Heart } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -58,6 +58,7 @@ const SKILL_LEVELS = [
 
 export default function ProfilePage() {
   const [user, setUser] = useState<User | null>(null)
+  const [currentUser, setCurrentUser] = useState<User | null>(null) // 当前登录用户
   const [projects, setProjects] = useState<Project[]>([])
   const [favoriteProjects, setFavoriteProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
@@ -70,6 +71,8 @@ export default function ProfilePage() {
   const [editMode, setEditMode] = useState(false)
   const [editData, setEditData] = useState<Partial<User>>({})
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const targetUserId = searchParams.get('userId') // URL参数中的用户ID
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -81,20 +84,55 @@ export default function ProfilePage() {
     }
 
     try {
-      const parsedUser = JSON.parse(userData)
-      setUser(parsedUser)
-      // 确保 editData 包含默认值，特别是 skillLevel
-      setEditData({
-        ...parsedUser,
-        skillLevel: parsedUser.skillLevel || 'BEGINNER' // 默认为初级
-      })
-      fetchUserProjects(parsedUser.id)
-      fetchUserFavorites(parsedUser.id) // 页面加载时就获取喜欢的作品
+      const parsedCurrentUser = JSON.parse(userData)
+      setCurrentUser(parsedCurrentUser)
+
+      // 如果有 targetUserId 参数，获取目标用户信息；否则显示当前用户
+      if (targetUserId) {
+        fetchTargetUser(targetUserId, token)
+      } else {
+        setUser(parsedCurrentUser)
+        // 确保 editData 包含默认值，特别是 skillLevel
+        setEditData({
+          ...parsedCurrentUser,
+          skillLevel: parsedCurrentUser.skillLevel || 'BEGINNER' // 默认为初级
+        })
+        fetchUserProjects(parsedCurrentUser.id)
+        fetchUserFavorites(parsedCurrentUser.id) // 页面加载时就获取喜欢的作品
+      }
     } catch (error) {
       console.error('Error parsing user data:', error)
       router.push('/login')
     }
-  }, [router])
+  }, [router, targetUserId])
+
+  const fetchTargetUser = async (userId: string, token: string) => {
+    try {
+      const response = await fetch(`/api/users/${userId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (response.ok) {
+        const targetUser = await response.json()
+        setUser(targetUser)
+        setEditData({
+          ...targetUser,
+          skillLevel: targetUser.skillLevel || 'BEGINNER'
+        })
+        fetchUserProjects(targetUser.id)
+        fetchUserFavorites(targetUser.id)
+      } else {
+        toast.error('用户不存在或无权访问')
+        router.push('/profile') // 重定向到自己的个人主页
+      }
+    } catch (error) {
+      console.error('Error fetching target user:', error)
+      toast.error('获取用户信息失败')
+      router.push('/profile')
+    }
+  }
 
   const fetchUserProjects = async (userId: string) => {
     try {
@@ -233,7 +271,9 @@ export default function ProfilePage() {
               <ArrowLeft className="w-5 h-5" />
               返回
             </button>
-            <h1 className="text-3xl font-bold text-white">个人中心</h1>
+            <h1 className="text-3xl font-bold text-white">
+              {targetUserId ? `${user?.nickname}的个人主页` : '个人中心'}
+            </h1>
             <div className="w-16" />
           </div>
 
@@ -270,19 +310,21 @@ export default function ProfilePage() {
                     : 'text-white/70 hover:text-white hover:bg-white/10'
                 }`}
               >
-                📁 我的作品 ({projects.length})
+                📁 {targetUserId ? '作品' : '我的作品'} ({projects.length})
               </button>
-              <button
-                onClick={() => setActiveTab('favorites')}
-                className={`px-6 py-3 rounded-lg font-medium transition-all ${
-                  activeTab === 'favorites'
-                    ? 'bg-white/20 text-white shadow-lg'
-                    : 'text-white/70 hover:text-white hover:bg-white/10'
-                }`}
-              >
-                <Heart className="w-4 h-4 inline mr-2" />
-                我喜欢 ({totalFavorites})
-              </button>
+              {!targetUserId && (
+                <button
+                  onClick={() => setActiveTab('favorites')}
+                  className={`px-6 py-3 rounded-lg font-medium transition-all ${
+                    activeTab === 'favorites'
+                      ? 'bg-white/20 text-white shadow-lg'
+                      : 'text-white/70 hover:text-white hover:bg-white/10'
+                  }`}
+                >
+                  <Heart className="w-4 h-4 inline mr-2" />
+                  我喜欢 ({totalFavorites})
+                </button>
+              )}
             </div>
           </div>
 
@@ -292,33 +334,35 @@ export default function ProfilePage() {
               {/* 编辑模式切换 */}
               <div className="flex justify-between items-center">
                 <h3 className="text-xl font-bold text-white">个人信息</h3>
-                <div className="flex gap-3">
-                  {editMode ? (
-                    <>
+                {!targetUserId && (
+                  <div className="flex gap-3">
+                    {editMode ? (
+                      <>
+                        <button
+                          onClick={() => setEditMode(false)}
+                          className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg font-medium transition-colors border border-white/20"
+                        >
+                          取消
+                        </button>
+                        <button
+                          onClick={handleUpdateProfile}
+                          className="px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-lg font-medium transition-all flex items-center gap-2"
+                        >
+                          <Edit className="w-4 h-4" />
+                          保存
+                        </button>
+                      </>
+                    ) : (
                       <button
-                        onClick={() => setEditMode(false)}
-                        className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg font-medium transition-colors border border-white/20"
-                      >
-                        取消
-                      </button>
-                      <button
-                        onClick={handleUpdateProfile}
-                        className="px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-lg font-medium transition-all flex items-center gap-2"
+                        onClick={() => setEditMode(true)}
+                        className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-lg font-medium transition-all flex items-center gap-2"
                       >
                         <Edit className="w-4 h-4" />
-                        保存
+                        编辑资料
                       </button>
-                    </>
-                  ) : (
-                    <button
-                      onClick={() => setEditMode(true)}
-                      className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-lg font-medium transition-all flex items-center gap-2"
-                    >
-                      <Edit className="w-4 h-4" />
-                      编辑资料
-                    </button>
-                  )}
-                </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* 表单字段 */}
@@ -329,7 +373,7 @@ export default function ProfilePage() {
                     <User className="w-4 h-4 inline mr-2" />
                     昵称
                   </label>
-                  {editMode ? (
+                  {editMode && !targetUserId ? (
                     <input
                       type="text"
                       className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent backdrop-blur-sm"
@@ -360,7 +404,7 @@ export default function ProfilePage() {
                     <Target className="w-4 h-4 inline mr-2" />
                     学员身份
                   </label>
-                  {editMode ? (
+                  {editMode && !targetUserId ? (
                     <select
                       className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent backdrop-blur-sm"
                       value={editData.role || ''}
@@ -368,7 +412,7 @@ export default function ProfilePage() {
                     >
                       {USER_ROLES.filter(role => {
                         // 如果当前用户不是管理员，则不能选择管理员角色
-                        if (role.value === 'ADMIN' && user.role !== 'ADMIN') {
+                        if (role.value === 'ADMIN' && currentUser?.role !== 'ADMIN') {
                           return false
                         }
                         return true
@@ -391,7 +435,7 @@ export default function ProfilePage() {
                     <BarChart3 className="w-4 h-4 inline mr-2" />
                     技术水平
                   </label>
-                  {editMode ? (
+                  {editMode && !targetUserId ? (
                     <select
                       className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent backdrop-blur-sm"
                       value={editData.skillLevel || 'BEGINNER'}
@@ -416,7 +460,7 @@ export default function ProfilePage() {
                     <Mail className="w-4 h-4 inline mr-2" />
                     邮箱
                   </label>
-                  {editMode ? (
+                  {editMode && !targetUserId ? (
                     <input
                       type="email"
                       className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent backdrop-blur-sm"
@@ -432,20 +476,22 @@ export default function ProfilePage() {
               </div>
 
               {/* 账户操作 */}
-              <div className="mt-8 pt-6 border-t border-white/20">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h4 className="text-lg font-semibold text-white">账户操作</h4>
-                    <p className="text-white/60">管理你的账户设置</p>
+              {!targetUserId && (
+                <div className="mt-8 pt-6 border-t border-white/20">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h4 className="text-lg font-semibold text-white">账户操作</h4>
+                      <p className="text-white/60">管理你的账户设置</p>
+                    </div>
+                    <button
+                      onClick={logout}
+                      className="px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold rounded-xl transition-all"
+                    >
+                      退出登录
+                    </button>
                   </div>
-                  <button
-                    onClick={logout}
-                    className="px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold rounded-xl transition-all"
-                  >
-                    退出登录
-                  </button>
                 </div>
-              </div>
+              )}
             </div>
           )}
 
@@ -453,14 +499,18 @@ export default function ProfilePage() {
             <div className="space-y-6">
               {/* 作品列表头部 */}
               <div className="flex justify-between items-center">
-                <h3 className="text-xl font-bold text-white">我的作品</h3>
-                <button
-                  onClick={() => router.push('/upload')}
-                  className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-lg font-medium transition-all flex items-center gap-2"
-                >
-                  <Upload className="w-4 h-4" />
-                  上传新作品
-                </button>
+                <h3 className="text-xl font-bold text-white">
+                  {targetUserId ? `${user?.nickname}的作品` : '我的作品'}
+                </h3>
+                {!targetUserId && (
+                  <button
+                    onClick={() => router.push('/upload')}
+                    className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-lg font-medium transition-all flex items-center gap-2"
+                  >
+                    <Upload className="w-4 h-4" />
+                    上传新作品
+                  </button>
+                )}
               </div>
 
               {/* 作品列表 */}
@@ -551,22 +601,24 @@ export default function ProfilePage() {
                             </a>
                           )}
                         </div>
-                        <div className="flex space-x-2">
-                          <button
-                            onClick={() => router.push(`/edit/${project.id}`)}
-                            className="text-sm px-3 py-1 bg-yellow-500/20 text-yellow-300 rounded-lg hover:bg-yellow-500/30 transition-colors flex items-center gap-1"
-                          >
-                            <Edit className="w-3 h-3" />
-                            编辑
-                          </button>
-                          <button
-                            onClick={() => handleDeleteProject(project.id)}
-                            className="text-sm px-3 py-1 bg-red-500/20 text-red-300 rounded-lg hover:bg-red-500/30 transition-colors flex items-center gap-1"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                            删除
-                          </button>
-                        </div>
+                        {!targetUserId && (
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={() => router.push(`/edit/${project.id}`)}
+                              className="text-sm px-3 py-1 bg-yellow-500/20 text-yellow-300 rounded-lg hover:bg-yellow-500/30 transition-colors flex items-center gap-1"
+                            >
+                              <Edit className="w-3 h-3" />
+                              编辑
+                            </button>
+                            <button
+                              onClick={() => handleDeleteProject(project.id)}
+                              className="text-sm px-3 py-1 bg-red-500/20 text-red-300 rounded-lg hover:bg-red-500/30 transition-colors flex items-center gap-1"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                              删除
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </motion.div>
                   ))}
@@ -575,7 +627,7 @@ export default function ProfilePage() {
             </div>
           )}
 
-          {activeTab === 'favorites' && (
+          {activeTab === 'favorites' && !targetUserId && (
             <div className="space-y-6">
               {/* 喜欢作品列表头部 */}
               <div className="flex justify-between items-center">

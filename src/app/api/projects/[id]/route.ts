@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import jwt from 'jsonwebtoken'
 
 // 配置运行时
 export const runtime = 'nodejs'
 export const maxDuration = 45
-
-const prisma = new PrismaClient()
 
 export async function GET(
   request: NextRequest,

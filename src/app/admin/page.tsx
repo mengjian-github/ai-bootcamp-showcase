@@ -39,16 +39,54 @@ interface Project {
   }
 }
 
+interface User {
+  id: string
+  nickname: string
+  planetNumber: string
+  role: string
+  avatar: string | null
+  email: string | null
+  createdAt: string
+  _count: {
+    projects: number
+  }
+  projects?: Array<{
+    id: string
+    title: string
+    bootcamp: {
+      id: string
+      name: string
+    }
+  }>
+}
+
 export default function AdminPage() {
   const [bootcamps, setBootcamps] = useState<Bootcamp[]>([])
   const [projects, setProjects] = useState<Project[]>([])
+  const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [editingBootcamp, setEditingBootcamp] = useState<Bootcamp | null>(null)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [activeTab, setActiveTab] = useState<'bootcamps' | 'projects'>('bootcamps')
+  const [activeTab, setActiveTab] = useState<'bootcamps' | 'projects' | 'users'>('bootcamps')
   const [currentProjectPage, setCurrentProjectPage] = useState(1)
   const projectsPerPage = 10
+  const [currentUserPage, setCurrentUserPage] = useState(1)
+  const usersPerPage = 10
+
+  // 筛选和搜索状态
+  const [projectFilters, setProjectFilters] = useState({
+    bootcampId: '',
+    isApproved: '',
+    type: '',
+    search: ''
+  })
+  const [userFilters, setUserFilters] = useState({
+    role: '',
+    hasProjects: '',
+    search: ''
+  })
+
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -88,6 +126,7 @@ export default function AdminPage() {
               setIsAuthenticated(true)
               fetchBootcamps()
               fetchProjects()
+              fetchUsers()
               return
             }
           }
@@ -102,6 +141,7 @@ export default function AdminPage() {
       setIsAuthenticated(true)
       fetchBootcamps()
       fetchProjects()
+      fetchUsers()
     } catch (error) {
       router.push('/login')
     }
@@ -165,6 +205,35 @@ export default function AdminPage() {
       console.error('Error fetching projects:', error)
       toast.error('网络错误，获取作品数据失败')
       setProjects([])
+    }
+  }
+
+  const fetchUsers = async () => {
+    const token = localStorage.getItem('token')
+    if (!token) return
+
+    try {
+      const response = await fetch('/api/users?admin=true', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        console.error('API Error:', errorData)
+        toast.error(`获取用户数据失败: ${errorData.message || '未知错误'}`)
+        setUsers([])
+        return
+      }
+
+      const data = await response.json()
+      console.log('Users data:', data)
+      setUsers(Array.isArray(data) ? data : [])
+    } catch (error) {
+      console.error('Error fetching users:', error)
+      toast.error('网络错误，获取用户数据失败')
+      setUsers([])
     }
   }
 
@@ -300,18 +369,60 @@ export default function AdminPage() {
     }
   }
 
+  // 作品筛选逻辑
+  const filteredProjects = projects.filter(project => {
+    const matchesBootcamp = !projectFilters.bootcampId || project.bootcamp?.id === projectFilters.bootcampId
+    const matchesApproval = projectFilters.isApproved === '' ||
+      (projectFilters.isApproved === 'true' ? project.isApproved : !project.isApproved)
+    const matchesType = !projectFilters.type || project.type === projectFilters.type
+    const matchesSearch = !projectFilters.search ||
+      project.title.toLowerCase().includes(projectFilters.search.toLowerCase()) ||
+      project.author?.nickname.toLowerCase().includes(projectFilters.search.toLowerCase())
+
+    return matchesBootcamp && matchesApproval && matchesType && matchesSearch
+  })
+
+  // 用户筛选逻辑
+  const filteredUsers = users.filter(user => {
+    const matchesRole = !userFilters.role || user.role === userFilters.role
+    const matchesProjects = userFilters.hasProjects === '' ||
+      (userFilters.hasProjects === 'true' ? (user._count?.projects || 0) > 0 : (user._count?.projects || 0) === 0)
+    const matchesSearch = !userFilters.search ||
+      user.nickname.toLowerCase().includes(userFilters.search.toLowerCase()) ||
+      user.planetNumber.toLowerCase().includes(userFilters.search.toLowerCase())
+
+    return matchesRole && matchesProjects && matchesSearch
+  })
+
   // 作品分页逻辑
-  const totalProjectPages = Math.ceil(projects.length / projectsPerPage)
+  const totalProjectPages = Math.ceil(filteredProjects.length / projectsPerPage)
   const startProjectIndex = (currentProjectPage - 1) * projectsPerPage
   const endProjectIndex = startProjectIndex + projectsPerPage
-  const currentProjects = projects.slice(startProjectIndex, endProjectIndex)
+  const currentProjects = filteredProjects.slice(startProjectIndex, endProjectIndex)
 
-  // 重置作品页码当切换标签页时
+  // 用户分页逻辑
+  const totalUserPages = Math.ceil(filteredUsers.length / usersPerPage)
+  const startUserIndex = (currentUserPage - 1) * usersPerPage
+  const endUserIndex = startUserIndex + usersPerPage
+  const currentUsers = filteredUsers.slice(startUserIndex, endUserIndex)
+
+  // 重置页码当切换标签页时
   useEffect(() => {
     if (activeTab === 'projects') {
       setCurrentProjectPage(1)
+    } else if (activeTab === 'users') {
+      setCurrentUserPage(1)
     }
   }, [activeTab])
+
+  // 重置页码当筛选条件改变时
+  useEffect(() => {
+    setCurrentProjectPage(1)
+  }, [projectFilters])
+
+  useEffect(() => {
+    setCurrentUserPage(1)
+  }, [userFilters])
 
   if (loading || !isAuthenticated) {
     return (
@@ -350,6 +461,16 @@ export default function AdminPage() {
             }`}
           >
             作品管理
+          </button>
+          <button
+            onClick={() => setActiveTab('users')}
+            className={`pb-2 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === 'users'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            用户管理
           </button>
         </nav>
       </div>
@@ -451,7 +572,68 @@ export default function AdminPage() {
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-semibold text-gray-800">作品管理</h2>
             <div className="text-sm text-gray-600">
-              共 {projects.length} 个作品，每页显示 {projectsPerPage} 个
+              共 {filteredProjects.length} 个作品（总计 {projects.length} 个），每页显示 {projectsPerPage} 个
+            </div>
+          </div>
+
+          {/* 作品筛选器 */}
+          <div className="bg-white rounded-lg shadow p-4 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">搜索</label>
+                <input
+                  type="text"
+                  placeholder="按作品标题或作者搜索..."
+                  value={projectFilters.search}
+                  onChange={(e) => setProjectFilters({ ...projectFilters, search: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">训练营</label>
+                <select
+                  value={projectFilters.bootcampId}
+                  onChange={(e) => setProjectFilters({ ...projectFilters, bootcampId: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                >
+                  <option value="">全部训练营</option>
+                  {bootcamps.map(bootcamp => (
+                    <option key={bootcamp.id} value={bootcamp.id}>{bootcamp.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">审核状态</label>
+                <select
+                  value={projectFilters.isApproved}
+                  onChange={(e) => setProjectFilters({ ...projectFilters, isApproved: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                >
+                  <option value="">全部状态</option>
+                  <option value="true">已审核</option>
+                  <option value="false">待审核</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">作品类型</label>
+                <select
+                  value={projectFilters.type}
+                  onChange={(e) => setProjectFilters({ ...projectFilters, type: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                >
+                  <option value="">全部类型</option>
+                  <option value="LINK">链接</option>
+                  <option value="HTML_FILE">HTML文件</option>
+                </select>
+              </div>
+              <div className="flex items-end">
+                <button
+                  onClick={() => setProjectFilters({ bootcampId: '', isApproved: '', type: '', search: '' })}
+                  className="w-full px-3 py-2 text-sm font-medium text-gray-600 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  清除筛选
+                </button>
+              </div>
             </div>
           </div>
           <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -511,6 +693,14 @@ export default function AdminPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         <div className="flex space-x-2">
+                          <button
+                            onClick={() => {
+                              window.open(`/project/${project.id}`, '_blank')
+                            }}
+                            className="text-blue-600 hover:text-blue-900 font-medium"
+                          >
+                            查看作品
+                          </button>
                           {!project.isApproved && (
                             <button
                               onClick={() => handleApproveProject(project.id, true)}
@@ -560,24 +750,351 @@ export default function AdminPage() {
               </button>
 
               <div className="flex space-x-1">
-                {Array.from({ length: totalProjectPages }, (_, i) => i + 1).map((page) => (
-                  <button
-                    key={page}
-                    onClick={() => setCurrentProjectPage(page)}
-                    className={`w-10 h-10 text-sm font-medium rounded-lg transition-all duration-200 ${
-                      currentProjectPage === page
-                        ? 'bg-blue-500 text-white shadow-md'
-                        : 'text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 hover:border-gray-300'
-                    }`}
-                  >
-                    {page}
-                  </button>
-                ))}
+                {(() => {
+                  const maxVisiblePages = 5
+                  const pages = []
+
+                  if (totalProjectPages <= maxVisiblePages) {
+                    // 如果总页数小于等于最大显示页数，显示所有页码
+                    for (let i = 1; i <= totalProjectPages; i++) {
+                      pages.push(i)
+                    }
+                  } else {
+                    // 计算显示范围
+                    let startPage = Math.max(1, currentProjectPage - Math.floor(maxVisiblePages / 2))
+                    let endPage = Math.min(totalProjectPages, startPage + maxVisiblePages - 1)
+
+                    // 调整开始页，确保显示足够的页码
+                    if (endPage - startPage + 1 < maxVisiblePages) {
+                      startPage = Math.max(1, endPage - maxVisiblePages + 1)
+                    }
+
+                    // 添加第一页和省略号
+                    if (startPage > 1) {
+                      pages.push(1)
+                      if (startPage > 2) {
+                        pages.push('...')
+                      }
+                    }
+
+                    // 添加中间页码
+                    for (let i = startPage; i <= endPage; i++) {
+                      pages.push(i)
+                    }
+
+                    // 添加省略号和最后一页
+                    if (endPage < totalProjectPages) {
+                      if (endPage < totalProjectPages - 1) {
+                        pages.push('...')
+                      }
+                      pages.push(totalProjectPages)
+                    }
+                  }
+
+                  return pages.map((page, index) => (
+                    page === '...' ? (
+                      <span key={index} className="w-10 h-10 flex items-center justify-center text-gray-400">
+                        ...
+                      </span>
+                    ) : (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentProjectPage(page as number)}
+                        className={`w-10 h-10 text-sm font-medium rounded-lg transition-all duration-200 ${
+                          currentProjectPage === page
+                            ? 'bg-blue-500 text-white shadow-md'
+                            : 'text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 hover:border-gray-300'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    )
+                  ))
+                })()}
               </div>
 
               <button
                 onClick={() => setCurrentProjectPage(Math.min(totalProjectPages, currentProjectPage + 1))}
                 disabled={currentProjectPage === totalProjectPages}
+                className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+              >
+                <span>下一页</span>
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {activeTab === 'users' && (
+        <div>
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-semibold text-gray-800">用户管理</h2>
+            <div className="text-sm text-gray-600">
+              共 {filteredUsers.length} 个用户（总计 {users.length} 个），每页显示 {usersPerPage} 个
+            </div>
+          </div>
+
+          {/* 用户筛选器 */}
+          <div className="bg-white rounded-lg shadow p-4 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">搜索</label>
+                <input
+                  type="text"
+                  placeholder="按用户昵称或星球编号搜索..."
+                  value={userFilters.search}
+                  onChange={(e) => setUserFilters({ ...userFilters, search: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">角色</label>
+                <select
+                  value={userFilters.role}
+                  onChange={(e) => setUserFilters({ ...userFilters, role: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                >
+                  <option value="">全部角色</option>
+                  <option value="ADMIN">管理员</option>
+                  <option value="COACH">教练</option>
+                  <option value="STAFF">工作人员</option>
+                  <option value="ACTIONIST">行动家</option>
+                  <option value="MEMBER">成员</option>
+                  <option value="VOLUNTEER">志愿者</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">作品情况</label>
+                <select
+                  value={userFilters.hasProjects}
+                  onChange={(e) => setUserFilters({ ...userFilters, hasProjects: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                >
+                  <option value="">全部用户</option>
+                  <option value="true">已提交作品</option>
+                  <option value="false">未提交作品</option>
+                </select>
+              </div>
+              <div className="flex items-end">
+                <button
+                  onClick={() => setUserFilters({ role: '', hasProjects: '', search: '' })}
+                  className="w-full px-3 py-2 text-sm font-medium text-gray-600 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  清除筛选
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow overflow-hidden">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    用户昵称
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    星球编号
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    角色
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    邮箱
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    参与训练营
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    提交作品数
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    作品详情
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    注册时间
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    操作
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {Array.isArray(currentUsers) && currentUsers.length > 0 ? (
+                  currentUsers.map((user) => (
+                    <tr key={user.id}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        <div className="flex items-center">
+                          {user.avatar && (
+                            <img
+                              src={user.avatar}
+                              alt={user.nickname}
+                              className="w-8 h-8 rounded-full mr-3"
+                            />
+                          )}
+                          {user.nickname}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {user.planetNumber}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          user.role === 'ADMIN' ? 'bg-purple-100 text-purple-800' :
+                          user.role === 'COACH' ? 'bg-blue-100 text-blue-800' :
+                          user.role === 'STAFF' ? 'bg-green-100 text-green-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {user.role}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {user.email || '-'}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-500">
+                        <div className="max-w-32">
+                          {user.projects && user.projects.length > 0 ? (
+                            <div className="flex flex-wrap gap-1">
+                              {Array.from(new Set(user.projects.map(p => p.bootcamp?.name))).map((bootcampName, index) => (
+                                <span
+                                  key={index}
+                                  className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800"
+                                >
+                                  {bootcampName || '未知训练营'}
+                                </span>
+                              ))}
+                            </div>
+                          ) : (
+                            <span className="text-gray-400">未参与</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {user._count?.projects || 0}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-500">
+                        <div className="max-w-48">
+                          {user.projects && user.projects.length > 0 ? (
+                            <div className="space-y-1">
+                              {user.projects.map((project, index) => (
+                                <div key={project.id} className="text-xs bg-gray-50 p-2 rounded">
+                                  <div className="font-medium truncate">{project.title}</div>
+                                  <div className="text-gray-500">训练营: {project.bootcamp?.name || '未知'}</div>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <span className="text-gray-400">无作品</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {new Date(user.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => {
+                              // 查看用户详情和作品列表
+                              window.open(`/profile?userId=${user.id}`, '_blank')
+                            }}
+                            className="text-blue-600 hover:text-blue-900 font-medium"
+                          >
+                            查看详情
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={9} className="px-6 py-4 text-center text-gray-500">
+                      暂无用户数据
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* 用户分页控件 */}
+          {totalUserPages > 1 && (
+            <div className="flex justify-center items-center space-x-3 mt-6">
+              <button
+                onClick={() => setCurrentUserPage(Math.max(1, currentUserPage - 1))}
+                disabled={currentUserPage === 1}
+                className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+              >
+                <span>上一页</span>
+              </button>
+
+              <div className="flex space-x-1">
+                {(() => {
+                  const maxVisiblePages = 5
+                  const pages = []
+
+                  if (totalUserPages <= maxVisiblePages) {
+                    // 如果总页数小于等于最大显示页数，显示所有页码
+                    for (let i = 1; i <= totalUserPages; i++) {
+                      pages.push(i)
+                    }
+                  } else {
+                    // 计算显示范围
+                    let startPage = Math.max(1, currentUserPage - Math.floor(maxVisiblePages / 2))
+                    let endPage = Math.min(totalUserPages, startPage + maxVisiblePages - 1)
+
+                    // 调整开始页，确保显示足够的页码
+                    if (endPage - startPage + 1 < maxVisiblePages) {
+                      startPage = Math.max(1, endPage - maxVisiblePages + 1)
+                    }
+
+                    // 添加第一页和省略号
+                    if (startPage > 1) {
+                      pages.push(1)
+                      if (startPage > 2) {
+                        pages.push('...')
+                      }
+                    }
+
+                    // 添加中间页码
+                    for (let i = startPage; i <= endPage; i++) {
+                      pages.push(i)
+                    }
+
+                    // 添加省略号和最后一页
+                    if (endPage < totalUserPages) {
+                      if (endPage < totalUserPages - 1) {
+                        pages.push('...')
+                      }
+                      pages.push(totalUserPages)
+                    }
+                  }
+
+                  return pages.map((page, index) => (
+                    page === '...' ? (
+                      <span key={index} className="w-10 h-10 flex items-center justify-center text-gray-400">
+                        ...
+                      </span>
+                    ) : (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentUserPage(page as number)}
+                        className={`w-10 h-10 text-sm font-medium rounded-lg transition-all duration-200 ${
+                          currentUserPage === page
+                            ? 'bg-blue-500 text-white shadow-md'
+                            : 'text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 hover:border-gray-300'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    )
+                  ))
+                })()}
+              </div>
+
+              <button
+                onClick={() => setCurrentUserPage(Math.min(totalUserPages, currentUserPage + 1))}
+                disabled={currentUserPage === totalUserPages}
                 className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
               >
                 <span>下一页</span>
