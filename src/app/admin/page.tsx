@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
+import * as XLSX from 'xlsx'
 
 interface Bootcamp {
   id: string
@@ -95,6 +96,85 @@ export default function AdminPage() {
     isActive: true
   })
   const router = useRouter()
+
+  // Excel导出功能
+  const exportUsersToExcel = () => {
+    // 准备Excel数据
+    const excelData = filteredUsers.map(user => ({
+      '用户昵称': user.nickname,
+      '星球编号': user.planetNumber,
+      '角色': user.role,
+      '邮箱': user.email || '',
+      '提交作品数': user._count?.projects || 0,
+      '参与训练营': user.projects && user.projects.length > 0 ?
+        Array.from(new Set(user.projects.map(p => p.bootcamp?.name))).join(', ') : '未参与',
+      '作品列表': user.projects && user.projects.length > 0 ?
+        user.projects.map(p => p.title).join('; ') : '无作品',
+      '注册时间': new Date(user.createdAt).toLocaleDateString()
+    }))
+
+    // 创建工作簿和工作表
+    const worksheet = XLSX.utils.json_to_sheet(excelData)
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, worksheet, '用户列表')
+
+    // 设置列宽
+    const colWidths = [
+      { wch: 15 }, // 用户昵称
+      { wch: 15 }, // 星球编号
+      { wch: 12 }, // 角色
+      { wch: 25 }, // 邮箱
+      { wch: 12 }, // 提交作品数
+      { wch: 20 }, // 参与训练营
+      { wch: 40 }, // 作品列表
+      { wch: 15 }  // 注册时间
+    ]
+    worksheet['!cols'] = colWidths
+
+    // 导出文件
+    const fileName = `用户管理_${new Date().toLocaleDateString('zh-CN').replace(/\//g, '-')}.xlsx`
+    XLSX.writeFile(workbook, fileName)
+    toast.success('用户数据导出成功')
+  }
+
+  const exportProjectsToExcel = () => {
+    // 准备Excel数据
+    const excelData = filteredProjects.map(project => ({
+      '作品标题': project.title,
+      '作者昵称': project.author?.nickname || '',
+      '作者星球编号': project.author?.planetNumber || '',
+      '训练营': project.bootcamp?.name || '',
+      '作品类型': project.type === 'LINK' ? '链接' : 'HTML文件',
+      '项目链接': project.projectUrl || '',
+      '审核状态': project.isApproved ? '已审核' : '待审核',
+      '投票数': project.voteCount || 0,
+      '作品描述': project.description || ''
+    }))
+
+    // 创建工作簿和工作表
+    const worksheet = XLSX.utils.json_to_sheet(excelData)
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, worksheet, '作品列表')
+
+    // 设置列宽
+    const colWidths = [
+      { wch: 25 }, // 作品标题
+      { wch: 15 }, // 作者昵称
+      { wch: 15 }, // 作者星球编号
+      { wch: 20 }, // 训练营
+      { wch: 12 }, // 作品类型
+      { wch: 40 }, // 项目链接
+      { wch: 12 }, // 审核状态
+      { wch: 10 }, // 投票数
+      { wch: 30 }  // 作品描述
+    ]
+    worksheet['!cols'] = colWidths
+
+    // 导出文件
+    const fileName = `作品管理_${new Date().toLocaleDateString('zh-CN').replace(/\//g, '-')}.xlsx`
+    XLSX.writeFile(workbook, fileName)
+    toast.success('作品数据导出成功')
+  }
 
   useEffect(() => {
     checkAuth()
@@ -571,8 +651,19 @@ export default function AdminPage() {
         <div>
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-semibold text-gray-800">作品管理</h2>
-            <div className="text-sm text-gray-600">
-              共 {filteredProjects.length} 个作品（总计 {projects.length} 个），每页显示 {projectsPerPage} 个
+            <div className="flex items-center space-x-4">
+              <div className="text-sm text-gray-600">
+                共 {filteredProjects.length} 个作品（总计 {projects.length} 个），每页显示 {projectsPerPage} 个
+              </div>
+              <button
+                onClick={exportProjectsToExcel}
+                className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 transition-colors flex items-center space-x-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <span>导出Excel</span>
+              </button>
             </div>
           </div>
 
@@ -829,8 +920,19 @@ export default function AdminPage() {
         <div>
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-semibold text-gray-800">用户管理</h2>
-            <div className="text-sm text-gray-600">
-              共 {filteredUsers.length} 个用户（总计 {users.length} 个），每页显示 {usersPerPage} 个
+            <div className="flex items-center space-x-4">
+              <div className="text-sm text-gray-600">
+                共 {filteredUsers.length} 个用户（总计 {users.length} 个），每页显示 {usersPerPage} 个
+              </div>
+              <button
+                onClick={exportUsersToExcel}
+                className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 transition-colors flex items-center space-x-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <span>导出Excel</span>
+              </button>
             </div>
           </div>
 
