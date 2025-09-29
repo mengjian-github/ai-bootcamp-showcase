@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { motion } from 'framer-motion'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { ArrowLeft, User, Star, Target, BarChart3, Mail, Edit, Trash2, ExternalLink, Upload, Heart } from 'lucide-react'
@@ -56,7 +56,7 @@ const SKILL_LEVELS = [
   { value: 'ADVANCED', label: '🚀 专业程序员', description: '具备丰富编程经验，追求技术深度' },
 ]
 
-export default function ProfilePage() {
+function ProfilePageContent() {
   const [user, setUser] = useState<User | null>(null)
   const [currentUser, setCurrentUser] = useState<User | null>(null) // 当前登录用户
   const [projects, setProjects] = useState<Project[]>([])
@@ -806,5 +806,17 @@ export default function ProfilePage() {
         </motion.div>
       </div>
     </div>
+  )
+}
+
+export default function ProfilePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="loading-spinner w-12 h-12"></div>
+      </div>
+    }>
+      <ProfilePageContent />
+    </Suspense>
   )
 }
