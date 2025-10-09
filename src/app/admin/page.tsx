@@ -27,6 +27,7 @@ interface Project {
   coverImage: string
   voteCount: number
   isApproved: boolean
+  createdAt: string
   author: {
     id: string
     nickname: string
@@ -146,6 +147,7 @@ export default function AdminPage() {
       '训练营': project.bootcamp?.name || '',
       '作品类型': project.type === 'LINK' ? '链接' : 'HTML文件',
       '项目链接': project.projectUrl || '',
+      '上传时间': project.createdAt ? new Date(project.createdAt).toLocaleDateString() : '',
       '审核状态': project.isApproved ? '已审核' : '待审核',
       '投票数': project.voteCount || 0,
       '作品描述': project.description || ''
@@ -164,6 +166,7 @@ export default function AdminPage() {
       { wch: 20 }, // 训练营
       { wch: 12 }, // 作品类型
       { wch: 40 }, // 项目链接
+      { wch: 15 }, // 上传时间
       { wch: 12 }, // 审核状态
       { wch: 10 }, // 投票数
       { wch: 30 }  // 作品描述
@@ -744,6 +747,9 @@ export default function AdminPage() {
                     类型
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    上传时间
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     状态
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -769,6 +775,9 @@ export default function AdminPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {project.type === 'LINK' ? '链接' : 'HTML文件'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {project.createdAt ? new Date(project.createdAt).toLocaleDateString() : '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
@@ -820,7 +829,7 @@ export default function AdminPage() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
+                    <td colSpan={8} className="px-6 py-4 text-center text-gray-500">
                       暂无作品数据
                     </td>
                   </tr>
