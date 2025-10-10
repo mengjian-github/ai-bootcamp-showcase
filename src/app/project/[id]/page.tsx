@@ -77,7 +77,10 @@ export default function ProjectDetail() {
         headers.Authorization = `Bearer ${token}`
       }
 
-      const response = await fetch(`/api/projects/${id}`, { headers })
+      const response = await fetch(`/api/projects/${id}`, {
+        headers,
+        credentials: 'include'
+      })
       if (response.ok) {
         const data = await response.json()
         setProject(data)
@@ -99,11 +102,6 @@ export default function ProjectDetail() {
     if (!project) return
 
     const token = localStorage.getItem('token')
-    if (!token) {
-      toast.error('请先登录后再投票')
-      router.push('/login')
-      return
-    }
 
     if (votingState) return
 
@@ -122,12 +120,17 @@ export default function ProjectDetail() {
     } : null)
 
     try {
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json'
+      }
+      if (token) {
+        headers.Authorization = `Bearer ${token}`
+      }
+
       const response = await fetch(`/api/projects/${project.id}/vote`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
+        headers,
+        credentials: 'include'
       })
 
       const data = await response.json()
@@ -152,10 +155,7 @@ export default function ProjectDetail() {
           voteCount: project.voteCount
         } : null)
 
-        if (response.status === 401) {
-          toast.error('请先登录后再投票')
-          router.push('/login')
-        } else if (response.status === 403) {
+        if (response.status === 403) {
           toast.error(data.message || '投票失败')
         } else {
           toast.error('投票失败，请稍后重试')

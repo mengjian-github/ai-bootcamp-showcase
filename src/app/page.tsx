@@ -104,7 +104,10 @@ export default function Home() {
         headers.Authorization = `Bearer ${token}`
       }
 
-      const response = await fetch('/api/projects', { headers })
+      const response = await fetch('/api/projects', {
+        headers,
+        credentials: 'include'
+      })
       const data = await response.json()
       setProjects(Array.isArray(data) ? data : [])
     } catch (error) {
@@ -117,11 +120,6 @@ export default function Home() {
 
   const handleVote = async (projectId: string) => {
     const token = localStorage.getItem('token')
-    if (!token) {
-      window.location.href = '/login'
-      return
-    }
-
     // 防止重复点击
     if (votingStates[projectId]) {
       return
@@ -156,12 +154,18 @@ export default function Home() {
     )
 
     try {
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json'
+      }
+
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
+      }
+
       const response = await fetch(`/api/projects/${projectId}/vote`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
+        headers,
+        credentials: 'include'
       })
 
       const data = await response.json()
@@ -199,12 +203,7 @@ export default function Home() {
           )
         )
 
-        if (response.status === 401) {
-          toast.error('请先登录后再投票')
-          setTimeout(() => {
-            window.location.href = '/login'
-          }, 1500)
-        } else if (response.status === 403) {
+        if (response.status === 403) {
           toast.error(data.message || '投票失败')
         } else {
           toast.error('投票失败，请稍后重试')

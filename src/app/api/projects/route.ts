@@ -1,12 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/auth'
+import { randomUUID } from 'crypto'
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const bootcampId = searchParams.get('bootcampId')
     const isAdmin = searchParams.get('admin') === 'true'
+
+    // 获取当前访客ID
+    let visitorId = request.cookies.get('visitorId')?.value || ''
+    let shouldSetCookie = false
+    if (!visitorId) {
+      visitorId = randomUUID()
+      shouldSetCookie = true
+    }
 
     // 获取当前用户ID
     let currentUserId: string | null = null
@@ -42,6 +51,11 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    const voteConditions: any[] = [{ visitorId }]
+    if (currentUserId) {
+      voteConditions.push({ voterId: currentUserId })
+    }
+
     const projects = await prisma.project.findMany({
       where: whereClause,
       include: {
@@ -64,10 +78,10 @@ export async function GET(request: NextRequest) {
         _count: {
           select: { votes: true }
         },
-        votes: currentUserId ? {
-          where: { voterId: currentUserId },
+        votes: {
+          where: { OR: voteConditions },
           select: { id: true }
-        } : false
+        }
       },
       orderBy: { voteCount: 'desc' }
     })
@@ -75,11 +89,24 @@ export async function GET(request: NextRequest) {
     // 添加用户是否已投票的标识
     const projectsWithVoteStatus = projects.map(project => ({
       ...project,
-      hasVoted: currentUserId ? project.votes.length > 0 : false,
+      hasVoted: project.votes.length > 0,
       votes: undefined // 移除votes字段，只保留hasVoted
     }))
 
-    return NextResponse.json(projectsWithVoteStatus)
+    const response = NextResponse.json(projectsWithVoteStatus)
+
+    if (shouldSetCookie) {
+      response.cookies.set({
+        name: 'visitorId',
+        value: visitorId,
+        httpOnly: true,
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 24 * 365 * 5,
+        secure: process.env.NODE_ENV === 'production'
+      })
+    }
+
+    return response
   } catch (error) {
     console.error('Error fetching projects:', error)
     return NextResponse.json(

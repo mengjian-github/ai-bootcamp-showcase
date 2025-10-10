@@ -1,62 +1,42 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import jwt from 'jsonwebtoken'
+import { randomUUID } from 'crypto'
 
 export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    // 验证JWT token
-    const authHeader = request.headers.get('authorization')
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json(
-        { message: '需要登录才能投票' },
-        { status: 401 }
-      )
-    }
-
-    const token = authHeader.split(' ')[1]
-    let decoded: any
-    try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret')
-    } catch (error) {
-      return NextResponse.json(
-        { message: '登录已过期，请重新登录' },
-        { status: 401 }
-      )
-    }
-
     const projectId = params.id
-    const voterId = decoded.userId
+    const authHeader = request.headers.get('authorization')
+    let voterId: string | null = null
+
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1]
+      try {
+        const decoded: any = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret')
+        voterId = decoded.userId
+      } catch (error) {
+        // 忽略无效的 token，按匿名访客处理
+      }
+    }
+
+    let visitorId = request.cookies.get('visitorId')?.value || ''
+    let shouldSetCookie = false
+
+    if (!visitorId) {
+      visitorId = randomUUID()
+      shouldSetCookie = true
+    }
 
     // 使用事务和优化的查询 - 一次性验证所有条件
     const result = await prisma.$transaction(async (tx) => {
-      // 一次查询获取所有需要的信息
-      const [user, project, existingVote] = await Promise.all([
-        tx.user.findUnique({
-          where: { id: voterId },
-          select: { id: true }
-        }),
-        tx.project.findUnique({
-          where: { id: projectId },
-          select: { id: true, isApproved: true, authorId: true, voteCount: true }
-        }),
-        tx.vote.findUnique({
-          where: {
-            projectId_voterId: {
-              projectId,
-              voterId
-            }
-          },
-          select: { id: true }
-        })
-      ])
-
-      // 验证条件
-      if (!user) {
-        throw new Error('USER_NOT_FOUND')
-      }
+      // 查询项目和可选用户
+      const project = await tx.project.findUnique({
+        where: { id: projectId },
+        select: { id: true, isApproved: true, authorId: true }
+      })
 
       if (!project) {
         throw new Error('PROJECT_NOT_FOUND')
@@ -66,52 +46,88 @@ export async function POST(
         throw new Error('PROJECT_NOT_APPROVED')
       }
 
-      if (project.authorId === voterId) {
-        throw new Error('CANNOT_VOTE_OWN_PROJECT')
+      if (voterId) {
+        const user = await tx.user.findUnique({
+          where: { id: voterId },
+          select: { id: true }
+        })
+
+        if (!user) {
+          throw new Error('USER_NOT_FOUND')
+        }
+
+        if (project.authorId === voterId) {
+          throw new Error('CANNOT_VOTE_OWN_PROJECT')
+        }
       }
 
-      // 执行投票操作
+      // 查询当前访客或用户是否已经投票
+      const voteQueryConditions: any[] = [{ visitorId }]
+      if (voterId) {
+        voteQueryConditions.push({ voterId })
+      }
+
+      const existingVote = await tx.vote.findFirst({
+        where: {
+          projectId,
+          OR: voteQueryConditions
+        },
+        select: { id: true }
+      })
+
       if (existingVote) {
-        // 取消投票 - 使用原子操作
-        await Promise.all([
-          tx.vote.delete({
-            where: { id: existingVote.id }
-          }),
-          tx.project.update({
-            where: { id: projectId },
-            data: { voteCount: { decrement: 1 } }
-          })
-        ])
+        await tx.vote.delete({
+          where: { id: existingVote.id }
+        })
+
+        const updatedProject = await tx.project.update({
+          where: { id: projectId },
+          data: { voteCount: { decrement: 1 } },
+          select: { voteCount: true }
+        })
 
         return {
           voted: false,
           message: '已取消投票',
-          voteCount: project.voteCount - 1
+          voteCount: updatedProject.voteCount
         }
-      } else {
-        // 添加投票 - 使用原子操作
-        await Promise.all([
-          tx.vote.create({
-            data: {
-              projectId,
-              voterId
-            }
-          }),
-          tx.project.update({
-            where: { id: projectId },
-            data: { voteCount: { increment: 1 } }
-          })
-        ])
+      }
 
-        return {
-          voted: true,
-          message: '投票成功',
-          voteCount: project.voteCount + 1
+      await tx.vote.create({
+        data: {
+          projectId,
+          visitorId,
+          voterId: voterId || null
         }
+      })
+
+      const updatedProject = await tx.project.update({
+        where: { id: projectId },
+        data: { voteCount: { increment: 1 } },
+        select: { voteCount: true }
+      })
+
+      return {
+        voted: true,
+        message: '投票成功',
+        voteCount: updatedProject.voteCount
       }
     })
 
-    return NextResponse.json(result)
+    const response = NextResponse.json(result)
+
+    if (shouldSetCookie) {
+      response.cookies.set({
+        name: 'visitorId',
+        value: visitorId,
+        httpOnly: true,
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 24 * 365 * 5,
+        secure: process.env.NODE_ENV === 'production'
+      })
+    }
+
+    return response
 
   } catch (error: any) {
     console.error('Error handling vote:', error)

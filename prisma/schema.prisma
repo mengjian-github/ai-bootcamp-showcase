@@ -104,10 +104,12 @@ model Vote {
   projectId String
   project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
-  voterId String
-  voter   User   @relation(fields: [voterId], references: [id], onDelete: Cascade)
+  voterId   String?
+  voter     User?   @relation(fields: [voterId], references: [id], onDelete: Cascade)
+  visitorId String @db.Uuid
 
-  // 一个用户对一个作品只能投一票
+  // 一个用户或访客对一个作品只能投一票
   @@unique([projectId, voterId])
+  @@unique([projectId, visitorId])
   @@map("votes")
 }

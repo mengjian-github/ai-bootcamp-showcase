@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import jwt from 'jsonwebtoken'
+import { randomUUID } from 'crypto'
 
 // 配置运行时
 export const runtime = 'nodejs'
@@ -11,6 +12,14 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    // 获取访客ID
+    let visitorId = request.cookies.get('visitorId')?.value || ''
+    let shouldSetCookie = false
+    if (!visitorId) {
+      visitorId = randomUUID()
+      shouldSetCookie = true
+    }
+
     // 获取当前用户ID（如果有登录）
     let currentUserId: string | null = null
     const authHeader = request.headers.get('authorization')
@@ -51,10 +60,15 @@ export async function GET(
             votes: true
           }
         },
-        votes: currentUserId ? {
-          where: { voterId: currentUserId },
+        votes: {
+          where: {
+            OR: [
+              { visitorId },
+              ...(currentUserId ? [{ voterId: currentUserId }] : [])
+            ]
+          },
           select: { id: true }
-        } : false
+        }
       }
     })
 
@@ -88,13 +102,26 @@ export async function GET(
     // 添加用户是否已投票的标识和投票数
     const projectWithVoteStatus = {
       ...project,
-      hasVoted: currentUserId ? project.votes.length > 0 : false,
+      hasVoted: project.votes.length > 0,
       voteCount: project._count.votes,
       votes: undefined, // 移除votes字段，只保留hasVoted
       _count: undefined // 移除_count字段，已经用voteCount代替
     }
 
-    return NextResponse.json(projectWithVoteStatus)
+    const response = NextResponse.json(projectWithVoteStatus)
+
+    if (shouldSetCookie) {
+      response.cookies.set({
+        name: 'visitorId',
+        value: visitorId,
+        httpOnly: true,
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 24 * 365 * 5,
+        secure: process.env.NODE_ENV === 'production'
+      })
+    }
+
+    return response
   } catch (error) {
     console.error('Error fetching project:', error)
     return NextResponse.json(
