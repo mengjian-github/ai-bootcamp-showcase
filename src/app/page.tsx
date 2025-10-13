@@ -368,9 +368,9 @@ export default function Home() {
                 探索AI编程的无限可能
               </div>
               <h1 className="text-6xl md:text-7xl font-black mb-6 text-white leading-tight">
-                <span className="block">AI编程</span>
+                <span className="block">破局黑客松</span>
                 <span className="block bg-gradient-to-r from-yellow-300 via-pink-300 to-purple-300 bg-clip-text text-transparent">
-                  训练营
+                  AI编程大赛
                 </span>
               </h1>
               <p className="text-xl md:text-2xl mb-12 text-white/90 max-w-3xl mx-auto leading-relaxed">

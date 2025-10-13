@@ -85,11 +85,11 @@ export default function Navigation() {
             >
               <img
                 src="/logo.png"
-                alt="AI编程训练营"
+                alt="破局黑客松AI编程大赛"
                 className="h-16 w-auto object-contain max-w-32"
               />
               <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent hover:from-blue-700 hover:to-purple-700 transition-all duration-300">
-                AI编程训练营
+                破局黑客松AI编程大赛
               </span>
             </motion.a>
           </div>
