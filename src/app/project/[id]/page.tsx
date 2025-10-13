@@ -212,20 +212,20 @@ export default function ProjectDetail() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
-        <div className="text-gray-500">加载中...</div>
+      <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(34,211,238,0.18),_rgba(2,6,23,0.95))] flex items-center justify-center">
+        <div className="text-slate-400">加载中...</div>
       </div>
     )
   }
 
   if (!project) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">作品不存在</h1>
+      <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(34,211,238,0.18),_rgba(2,6,23,0.95))] flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <h1 className="text-3xl font-bold text-slate-100 drop-shadow-[0_0_16px_rgba(34,211,238,0.35)]">作品不存在</h1>
           <button
             onClick={() => router.push('/')}
-            className="text-blue-600 hover:text-blue-800"
+            className="inline-flex items-center px-5 py-2 rounded-full bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 text-white font-semibold hover:from-cyan-400 hover:via-blue-500 hover:to-purple-500 transition-all duration-300 shadow-[0_16px_32px_rgba(2,6,23,0.65)] hover:shadow-[0_20px_40px_rgba(34,211,238,0.35)]"
           >
             返回首页
           </button>
@@ -235,14 +235,14 @@ export default function ProjectDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(34,211,238,0.15),_rgba(2,6,23,0.95))]">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* 返回按钮 */}
         <motion.button
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           onClick={() => router.back()}
-          className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 mb-8 transition-colors duration-200"
+          className="flex items-center space-x-2 text-slate-400 hover:text-cyan-300 mb-8 transition-colors duration-200"
         >
           <ArrowLeft className="w-5 h-5" />
           <span>返回列表</span>
@@ -257,8 +257,8 @@ export default function ProjectDetail() {
             className="lg:col-span-2"
           >
             {/* 作品封面 */}
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-white/50 shadow-lg overflow-hidden mb-8">
-              <div className="aspect-video bg-gradient-to-br from-gray-100 to-gray-200 relative overflow-hidden">
+            <div className="card p-0 overflow-hidden mb-8">
+              <div className="aspect-video bg-slate-900/70 border-b border-slate-800 relative overflow-hidden">
                 {project.coverImage ? (
                   <img
                     src={project.coverImage}
@@ -268,10 +268,10 @@ export default function ProjectDetail() {
                 ) : (
                   <div className="flex items-center justify-center h-full">
                     <div className="text-center">
-                      <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-purple-500 rounded-2xl flex items-center justify-center mb-4 mx-auto">
+                      <div className="w-16 h-16 bg-gradient-to-br from-cyan-500 to-purple-500 rounded-2xl flex items-center justify-center mb-4 mx-auto shadow-[0_0_24px_rgba(34,211,238,0.35)]">
                         <Award className="w-8 h-8 text-white" />
                       </div>
-                      <span className="text-gray-500 text-lg">精彩作品</span>
+                      <span className="text-slate-300 text-lg">精彩作品</span>
                     </div>
                   </div>
                 )}
@@ -279,16 +279,16 @@ export default function ProjectDetail() {
             </div>
 
             {/* 作品标题和描述 */}
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-white/50 shadow-lg p-8">
+            <div className="card">
               <div className="flex items-start justify-between mb-6">
                 <div className="flex-1">
-                  <h1 className="text-3xl font-bold text-gray-900 mb-4">{project.title}</h1>
+                  <h1 className="text-3xl font-bold text-slate-100 mb-4 drop-shadow-[0_0_18px_rgba(34,211,238,0.35)]">{project.title}</h1>
                   <div className="flex items-center space-x-4 mb-4">
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-gradient-to-r from-blue-500/10 to-purple-500/10 text-blue-700 border border-blue-200/50">
-                      <Award className="w-4 h-4 mr-1" />
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-gradient-to-r from-cyan-500/20 to-indigo-500/20 text-cyan-100 border border-cyan-500/30">
+                      <Award className="w-4 h-4 mr-1 text-cyan-300" />
                       {project.bootcamp.name}
                     </span>
-                    <span className="text-gray-500 text-sm flex items-center">
+                    <span className="text-slate-400 text-sm flex items-center">
                       <Calendar className="w-4 h-4 mr-1" />
                       {new Date(project.createdAt).toLocaleDateString('zh-CN')}
                     </span>
@@ -299,8 +299,8 @@ export default function ProjectDetail() {
               {/* 作品描述 */}
               {project.description && (
                 <div className="mb-8">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">作品介绍</h3>
-                  <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                  <h3 className="text-lg font-semibold text-slate-100 mb-3">作品介绍</h3>
+                  <p className="text-slate-300 leading-relaxed whitespace-pre-wrap">
                     {project.description}
                   </p>
                 </div>
@@ -312,7 +312,7 @@ export default function ProjectDetail() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={viewProject}
-                  className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl"
+                  className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 text-white font-semibold rounded-xl hover:from-cyan-400 hover:via-blue-500 hover:to-purple-500 transition-all duration-300 shadow-[0_18px_40px_rgba(2,6,23,0.65)] hover:shadow-[0_22px_46px_rgba(34,211,238,0.4)]"
                 >
                   <ExternalLink className="w-5 h-5" />
                   <span>查看作品</span>
@@ -322,7 +322,7 @@ export default function ProjectDetail() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={shareProject}
-                  className="flex items-center space-x-2 px-6 py-3 bg-white border border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-all duration-300"
+                  className="flex items-center space-x-2 px-6 py-3 rounded-xl bg-slate-900/70 border border-cyan-500/30 text-slate-100 font-semibold hover:bg-slate-900/80 transition-all duration-300 shadow-[0_10px_28px_rgba(2,6,23,0.6)]"
                 >
                   {copied ? <Check className="w-5 h-5" /> : <Share2 className="w-5 h-5" />}
                   <span>{copied ? '已复制' : '分享'}</span>
@@ -339,27 +339,27 @@ export default function ProjectDetail() {
             className="space-y-6"
           >
             {/* 作者信息 */}
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-white/50 shadow-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">作者信息</h3>
+            <div className="card p-6">
+              <h3 className="text-lg font-semibold text-slate-100 mb-4">作者信息</h3>
               <div className="flex items-center space-x-4 mb-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center">
+                <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-indigo-600 rounded-full flex items-center justify-center shadow-[0_0_16px_rgba(34,211,238,0.3)]">
                   <span className="text-white font-bold text-lg">
                     {project.author.nickname.charAt(0)}
                   </span>
                 </div>
                 <div className="flex-1">
-                  <div className="font-semibold text-gray-900">{project.author.nickname}</div>
-                  <div className="text-sm text-gray-500">星球编号: {project.author.planetNumber}</div>
+                  <div className="font-semibold text-slate-100">{project.author.nickname}</div>
+                  <div className="text-sm text-slate-400">星球编号: {project.author.planetNumber}</div>
                 </div>
               </div>
 
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">技能水平</span>
+                  <span className="text-sm text-slate-400">技能水平</span>
                   <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                    project.author.skillLevel === 'BEGINNER' ? 'bg-green-50 text-green-700 border border-green-200' :
-                    project.author.skillLevel === 'INTERMEDIATE' ? 'bg-blue-50 text-blue-700 border border-blue-200' :
-                    'bg-purple-50 text-purple-700 border border-purple-200'
+                    project.author.skillLevel === 'BEGINNER' ? 'bg-emerald-500/15 text-emerald-200 border border-emerald-400/30' :
+                    project.author.skillLevel === 'INTERMEDIATE' ? 'bg-cyan-500/15 text-cyan-200 border border-cyan-400/30' :
+                    'bg-purple-500/15 text-purple-200 border border-purple-400/30'
                   }`}>
                     {project.author.skillLevel === 'BEGINNER' && '🌱 零基础'}
                     {project.author.skillLevel === 'INTERMEDIATE' && '💪 有基础'}
@@ -368,7 +368,7 @@ export default function ProjectDetail() {
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">角色</span>
+                  <span className="text-sm text-slate-400">角色</span>
                   <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium tag-role ${project.author.role}`}>
                     {project.author.role === 'COACH' && '🎯 教练'}
                     {project.author.role === 'ACTIONIST' && '⚡ 行动家'}
@@ -382,52 +382,52 @@ export default function ProjectDetail() {
             </div>
 
             {/* 投票区域 */}
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-white/50 shadow-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">为作品投票</h3>
+            <div className="card p-6">
+              <h3 className="text-lg font-semibold text-slate-100 mb-4">为作品投票</h3>
               <div className="text-center">
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={handleVote}
                   disabled={votingState}
-                  className={`w-full flex items-center justify-center space-x-3 px-6 py-4 rounded-xl transition-all duration-300 ${
+                  className={`group w-full flex items-center justify-center space-x-3 px-6 py-4 rounded-xl transition-all duration-300 ${
                     project.hasVoted
-                      ? 'bg-red-50 border-2 border-red-200 text-red-600 hover:bg-red-100'
-                      : 'bg-gray-50 border-2 border-gray-200 text-gray-600 hover:bg-red-50 hover:border-red-200 hover:text-red-600'
-                  } ${votingState ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      ? 'bg-rose-500/15 border-2 border-rose-400/40 text-rose-300 hover:bg-rose-500/25'
+                      : 'bg-slate-900/60 border-2 border-slate-700 text-slate-200 hover:bg-rose-500/10 hover:border-rose-400/40 hover:text-rose-300'
+                  } ${votingState ? 'opacity-40 cursor-not-allowed' : ''}`}
                 >
                   {votingState ? (
                     <motion.div
                       animate={{ rotate: 360 }}
                       transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                      className="w-6 h-6 border-2 border-red-300 border-t-red-500 rounded-full"
+                      className="w-6 h-6 border-2 border-rose-500/40 border-t-rose-400 rounded-full"
                     />
                   ) : (
-                    <Heart className={`w-6 h-6 ${project.hasVoted ? 'fill-current' : ''}`} />
+                    <Heart className={`w-6 h-6 ${project.hasVoted ? 'fill-current text-rose-400 drop-shadow-[0_0_12px_rgba(248,113,113,0.45)]' : 'text-slate-300 group-hover:text-rose-400'}`} />
                   )}
                   <div className="text-center">
-                    <div className="text-2xl font-bold">{project.voteCount}</div>
-                    <div className="text-sm">{project.hasVoted ? '已投票' : '点赞支持'}</div>
+                    <div className="text-2xl font-bold text-white">{project.voteCount}</div>
+                    <div className="text-sm text-slate-300">{project.hasVoted ? '已投票' : '点赞支持'}</div>
                   </div>
                 </motion.button>
               </div>
             </div>
 
             {/* 作品信息 */}
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-white/50 shadow-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">作品信息</h3>
+            <div className="card p-6">
+              <h3 className="text-lg font-semibold text-slate-100 mb-4">作品信息</h3>
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">作品类型</span>
-                  <span className="text-sm font-medium text-gray-900 flex items-center">
+                  <span className="text-sm text-slate-400">作品类型</span>
+                  <span className="text-sm font-medium text-slate-100 flex items-center">
                     {project.type === 'LINK' ? (
                       <>
-                        <Globe className="w-4 h-4 mr-1" />
+                        <Globe className="w-4 h-4 mr-1 text-cyan-300" />
                         在线链接
                       </>
                     ) : (
                       <>
-                        <Github className="w-4 h-4 mr-1" />
+                        <Github className="w-4 h-4 mr-1 text-cyan-300" />
                         HTML文件
                       </>
                     )}
@@ -435,8 +435,8 @@ export default function ProjectDetail() {
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">发布时间</span>
-                  <span className="text-sm font-medium text-gray-900">
+                  <span className="text-sm text-slate-400">发布时间</span>
+                  <span className="text-sm font-medium text-slate-100">
                     {new Date(project.createdAt).toLocaleDateString('zh-CN', {
                       year: 'numeric',
                       month: 'long',
@@ -446,8 +446,8 @@ export default function ProjectDetail() {
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">所属训练营</span>
-                  <span className="text-sm font-medium text-blue-600">
+                  <span className="text-sm text-slate-400">所属训练营</span>
+                  <span className="text-sm font-medium text-cyan-300">
                     {project.bootcamp.name}
                   </span>
                 </div>

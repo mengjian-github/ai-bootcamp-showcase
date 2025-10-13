@@ -297,6 +297,7 @@ export default function Home() {
         p.title.toLowerCase().includes(query) ||
         (p.description && p.description.toLowerCase().includes(query)) ||
         p.author.nickname.toLowerCase().includes(query) ||
+        p.author.planetNumber.toLowerCase().includes(query) ||
         p.bootcamp.name.toLowerCase().includes(query)
       )
     }
@@ -318,13 +319,13 @@ export default function Home() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-gray-500">加载中...</div>
+        <div className="text-slate-400">加载中...</div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(34,211,238,0.15),_rgba(2,6,23,0.95))]">
       {/* Enhanced Hero Section */}
       <motion.div
         initial={{ opacity: 0 }}
@@ -363,13 +364,13 @@ export default function Home() {
               transition={{ duration: 0.8, delay: 0.2 }}
               className="mb-8"
             >
-              <div className="inline-flex items-center px-6 py-3 bg-white/20 backdrop-blur-sm rounded-full text-white text-sm font-medium mb-6 border border-white/30">
-                <Star className="w-4 h-4 mr-2 text-yellow-300" />
+              <div className="inline-flex items-center px-6 py-3 bg-slate-900/70 backdrop-blur-xl rounded-full text-cyan-100 text-sm font-medium mb-6 border border-cyan-500/30 shadow-[0_0_20px_rgba(34,211,238,0.25)]">
+                <Star className="w-4 h-4 mr-2 text-cyan-300" />
                 探索AI编程的无限可能
               </div>
               <h1 className="text-6xl md:text-7xl font-black mb-6 text-white leading-tight">
                 <span className="block">破局黑客松</span>
-                <span className="block bg-gradient-to-r from-yellow-300 via-pink-300 to-purple-300 bg-clip-text text-transparent">
+                <span className="block bg-gradient-to-r from-cyan-400 via-sky-400 to-fuchsia-500 bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(34,211,238,0.35)]">
                   AI编程大赛
                 </span>
               </h1>
@@ -387,9 +388,9 @@ export default function Home() {
             >
               <motion.div
                 whileHover={{ scale: 1.05, y: -5 }}
-                className="group bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20 hover:bg-white/20 transition-all duration-300"
+                className="group bg-slate-900/60 backdrop-blur-xl rounded-2xl p-8 border border-cyan-500/20 hover:bg-slate-900/80 hover:shadow-[0_20px_40px_rgba(2,6,23,0.6)] transition-all duration-300"
               >
-                <div className="flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl mb-4 mx-auto group-hover:from-blue-500 group-hover:to-blue-700 transition-all duration-300">
+                <div className="flex items-center justify-center w-16 h-16 bg-gradient-to-br from-cyan-500 to-indigo-600 rounded-xl mb-4 mx-auto group-hover:from-cyan-400 group-hover:to-indigo-500 transition-all duration-300 shadow-[0_0_24px_rgba(34,211,238,0.35)]">
                   <TrendingUp className="w-8 h-8 text-white" />
                 </div>
                 <div className="text-4xl font-black text-white mb-2">
@@ -401,9 +402,9 @@ export default function Home() {
 
               <motion.div
                 whileHover={{ scale: 1.05, y: -5 }}
-                className="group bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20 hover:bg-white/20 transition-all duration-300"
+                className="group bg-slate-900/60 backdrop-blur-xl rounded-2xl p-8 border border-cyan-500/20 hover:bg-slate-900/80 hover:shadow-[0_20px_40px_rgba(2,6,23,0.6)] transition-all duration-300"
               >
-                <div className="flex items-center justify-center w-16 h-16 bg-gradient-to-br from-purple-400 to-purple-600 rounded-xl mb-4 mx-auto group-hover:from-purple-500 group-hover:to-purple-700 transition-all duration-300">
+                <div className="flex items-center justify-center w-16 h-16 bg-gradient-to-br from-fuchsia-500 to-purple-600 rounded-xl mb-4 mx-auto group-hover:from-fuchsia-400 group-hover:to-purple-500 transition-all duration-300 shadow-[0_0_24px_rgba(217,70,239,0.35)]">
                   <Award className="w-8 h-8 text-white" />
                 </div>
                 <div className="text-4xl font-black text-white mb-2">
@@ -415,9 +416,9 @@ export default function Home() {
 
               <motion.div
                 whileHover={{ scale: 1.05, y: -5 }}
-                className="group bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20 hover:bg-white/20 transition-all duration-300"
+                className="group bg-slate-900/60 backdrop-blur-xl rounded-2xl p-8 border border-cyan-500/20 hover:bg-slate-900/80 hover:shadow-[0_20px_40px_rgba(2,6,23,0.6)] transition-all duration-300"
               >
-                <div className="flex items-center justify-center w-16 h-16 bg-gradient-to-br from-pink-400 to-pink-600 rounded-xl mb-4 mx-auto group-hover:from-pink-500 group-hover:to-pink-700 transition-all duration-300">
+                <div className="flex items-center justify-center w-16 h-16 bg-gradient-to-br from-rose-500 to-orange-500 rounded-xl mb-4 mx-auto group-hover:from-rose-400 group-hover:to-orange-400 transition-all duration-300 shadow-[0_0_24px_rgba(248,113,113,0.35)]">
                   <Heart className="w-8 h-8 text-white" />
                 </div>
                 <div className="text-4xl font-black text-white mb-2">
@@ -439,7 +440,7 @@ export default function Home() {
                 href="/upload"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-gray-900 font-bold rounded-xl hover:from-yellow-500 hover:to-orange-600 transition-all duration-300 shadow-lg hover:shadow-xl"
+                className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 text-white font-bold rounded-xl hover:from-cyan-400 hover:via-blue-500 hover:to-purple-500 transition-all duration-300 shadow-[0_20px_40px_rgba(2,6,23,0.6)] hover:shadow-[0_24px_50px_rgba(34,211,238,0.45)]"
               >
                 <Star className="w-5 h-5 mr-2" />
                 分享我的作品
@@ -450,8 +451,8 @@ export default function Home() {
         </div>
 
         {/* Decorative Elements */}
-        <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-br from-yellow-400/20 to-pink-400/20 rounded-full blur-xl"></div>
-        <div className="absolute bottom-20 right-10 w-40 h-40 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-xl"></div>
+        <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-br from-cyan-500/20 via-sky-500/10 to-purple-500/20 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 right-10 w-40 h-40 bg-gradient-to-br from-emerald-400/20 via-cyan-500/15 to-indigo-500/25 rounded-full blur-3xl"></div>
       </motion.div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
@@ -464,26 +465,26 @@ export default function Home() {
         >
           {/* 页面标题 */}
           <div className="text-center mb-8">
-            <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+            <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent drop-shadow-[0_0_18px_rgba(34,211,238,0.35)]">
               探索精彩作品
             </h2>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+            <p className="text-lg text-slate-300 max-w-3xl mx-auto">
               搜索、筛选和发现来自不同训练营的优秀AI编程作品
             </p>
           </div>
 
           {/* 搜索和筛选工具栏 */}
-          <div className="bg-white/60 backdrop-blur-sm rounded-2xl border border-white/50 shadow-lg p-6">
+          <div className="bg-slate-950/60 backdrop-blur-xl rounded-2xl border border-cyan-500/15 shadow-[0_20px_50px_rgba(2,6,23,0.6)] p-6">
             {/* 搜索框 */}
             <div className="mb-6">
               <div className="relative max-w-2xl mx-auto">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 w-5 h-5 z-10 pointer-events-none" />
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5 z-10 pointer-events-none" />
                 <input
                   type="text"
-                  placeholder="搜索作品标题、作者昵称或训练营..."
+                  placeholder="搜索作品标题、作者昵称、星球编号或训练营..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-12 pr-12 py-3 text-lg bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 placeholder-gray-400"
+                  className="form-input pl-12 pr-12 text-lg"
                 />
                 {searchQuery && (
                   <motion.button
@@ -492,7 +493,7 @@ export default function Home() {
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                     onClick={() => setSearchQuery('')}
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors duration-200"
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-cyan-300 transition-colors duration-200"
                   >
                     <X className="w-5 h-5" />
                   </motion.button>
@@ -506,15 +507,11 @@ export default function Home() {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setSelectedBootcamp('all')}
-                className={`relative px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
-                  selectedBootcamp === 'all'
-                    ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-md'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
+                className={`bootcamp-filter ${selectedBootcamp === 'all' ? 'active' : ''}`}
               >
                 <div className="flex items-center space-x-2">
-                  <Users className="w-4 h-4" />
-                  <span>全部 ({projects.length})</span>
+                  <Users className="w-4 h-4 text-cyan-300" />
+                  <span className="text-slate-100">全部 ({projects.length})</span>
                 </div>
               </motion.button>
 
@@ -527,15 +524,11 @@ export default function Home() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: index * 0.05 }}
                   onClick={() => setSelectedBootcamp(bootcamp.id)}
-                  className={`relative px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
-                    selectedBootcamp === bootcamp.id
-                      ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-md'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
+                  className={`bootcamp-filter ${selectedBootcamp === bootcamp.id ? 'active' : ''}`}
                 >
                   <div className="flex items-center space-x-2">
-                    <Award className="w-4 h-4" />
-                    <span>{bootcamp.name} ({bootcamp._count.projects})</span>
+                    <Award className="w-4 h-4 text-cyan-300" />
+                    <span className="text-slate-100">{bootcamp.name} ({bootcamp._count.projects})</span>
                   </div>
                 </motion.button>
               ))}
@@ -548,9 +541,9 @@ export default function Home() {
                 animate={{ opacity: 1, y: 0 }}
                 className="mt-4 text-center"
               >
-                <div className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-50 rounded-lg">
-                  <TrendingUp className="w-4 h-4 text-blue-500" />
-                  <span className="text-sm text-blue-700">
+                <div className="inline-flex items-center space-x-2 px-4 py-2 bg-slate-900/70 border border-cyan-500/20 rounded-lg shadow-[0_0_20px_rgba(34,211,238,0.2)]">
+                  <TrendingUp className="w-4 h-4 text-cyan-300" />
+                  <span className="text-sm text-cyan-100">
                     {searchQuery && selectedBootcamp !== 'all'
                       ? `在 "${bootcamps.find(b => b.id === selectedBootcamp)?.name || '选中训练营'}" 中找到 ${filteredProjects.length} 个相关作品`
                       : searchQuery
@@ -587,13 +580,13 @@ export default function Home() {
                 visible: { y: 0, opacity: 1 }
               }}
               whileHover={{ y: -8, transition: { duration: 0.3 } }}
-              className="group bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-white/50 hover:border-blue-200 shadow-lg hover:shadow-2xl transition-all duration-500 relative overflow-hidden"
+              className="group project-card"
             >
               {/* 背景装饰 */}
-              <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-blue-100/50 to-purple-100/50 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-cyan-500/15 to-purple-500/25 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
 
               {/* 封面图 */}
-              <div className="aspect-video bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl mb-6 overflow-hidden relative group-hover:scale-105 transition-transform duration-500">
+              <div className="aspect-video bg-slate-900/60 border border-cyan-500/10 rounded-xl mb-6 overflow-hidden relative group-hover:scale-105 transition-transform duration-500 shadow-[0_10px_30px_rgba(2,6,23,0.6)]">
                 {project.coverImage ? (
                   <>
                     <img
@@ -606,10 +599,10 @@ export default function Home() {
                 ) : (
                   <div className="flex items-center justify-center h-full">
                     <div className="text-center">
-                      <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-500 rounded-xl flex items-center justify-center mb-2 mx-auto">
+                      <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-purple-500 rounded-xl flex items-center justify-center mb-2 mx-auto shadow-[0_0_18px_rgba(34,211,238,0.3)]">
                         <Award className="w-6 h-6 text-white" />
                       </div>
-                      <span className="text-gray-500 text-sm">精彩作品</span>
+                      <span className="text-slate-300 text-sm">精彩作品</span>
                     </div>
                   </div>
                 )}
@@ -617,17 +610,17 @@ export default function Home() {
 
               {/* 作品信息 */}
               <div className="relative z-10">
-                <h4 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-blue-700 transition-colors duration-300">
+                <h4 className="text-xl font-bold text-slate-100 mb-3 group-hover:text-cyan-300 transition-colors duration-300">
                   {project.title}
                 </h4>
-                <p className="text-gray-600 text-sm mb-4 line-clamp-2 leading-relaxed">
+                <p className="text-slate-300 text-sm mb-4 line-clamp-2 leading-relaxed">
                   {project.description || '这是一个充满创意的AI编程作品，等待你的探索...'}
                 </p>
 
                 {/* 训练营标识 */}
                 <div className="mb-4">
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gradient-to-r from-blue-500/10 to-purple-500/10 text-blue-700 border border-blue-200/50">
-                    <Award className="w-3 h-3 mr-1" />
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gradient-to-r from-cyan-500/15 to-indigo-500/15 text-cyan-100 border border-cyan-500/30">
+                    <Award className="w-3 h-3 mr-1 text-cyan-300" />
                     {project.bootcamp.name}
                   </span>
                 </div>
@@ -635,21 +628,21 @@ export default function Home() {
                 {/* 作者信息 */}
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center">
+                    <div className="w-8 h-8 bg-gradient-to-br from-cyan-500 to-indigo-600 rounded-full flex items-center justify-center shadow-[0_0_12px_rgba(34,211,238,0.3)]">
                       <span className="text-white text-xs font-bold">
                         {project.author.nickname.charAt(0)}
                       </span>
                     </div>
                     <div>
-                      <div className="font-medium text-gray-900 text-sm">{project.author.nickname}</div>
-                      <div className="text-xs text-gray-500">星球编号: {project.author.planetNumber}</div>
+                      <div className="font-medium text-slate-100 text-sm">{project.author.nickname}</div>
+                      <div className="text-xs text-slate-400">星球编号: {project.author.planetNumber}</div>
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
                     <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                      project.author.skillLevel === 'BEGINNER' ? 'bg-green-50 text-green-700 border border-green-200' :
-                      project.author.skillLevel === 'INTERMEDIATE' ? 'bg-blue-50 text-blue-700 border border-blue-200' :
-                      'bg-purple-50 text-purple-700 border border-purple-200'
+                      project.author.skillLevel === 'BEGINNER' ? 'bg-emerald-500/15 text-emerald-200 border border-emerald-400/30' :
+                      project.author.skillLevel === 'INTERMEDIATE' ? 'bg-cyan-500/15 text-cyan-200 border border-cyan-400/30' :
+                      'bg-purple-500/15 text-purple-200 border border-purple-400/30'
                     }`}>
                       {project.author.skillLevel === 'BEGINNER' && '🌱 零基础'}
                       {project.author.skillLevel === 'INTERMEDIATE' && '💪 有基础'}
@@ -673,7 +666,7 @@ export default function Home() {
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => window.open(`/project/${project.id}`, '_blank')}
-                      className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-300 shadow-md hover:shadow-lg"
+                      className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 text-white font-semibold rounded-lg hover:from-cyan-400 hover:via-blue-500 hover:to-purple-500 transition-all duration-300 shadow-[0_12px_30px_rgba(2,6,23,0.6)] hover:shadow-[0_16px_36px_rgba(34,211,238,0.35)]"
                     >
                       <Star className="w-4 h-4" />
                       <span>查看详情</span>
@@ -686,7 +679,7 @@ export default function Home() {
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
                           onClick={() => router.push(`/edit/${project.id}`)}
-                          className="flex items-center justify-center w-8 h-8 bg-yellow-100 hover:bg-yellow-200 text-yellow-700 rounded-lg transition-all duration-300"
+                          className="flex items-center justify-center w-8 h-8 bg-amber-500/15 hover:bg-amber-500/25 text-amber-200 rounded-lg border border-amber-400/30 transition-all duration-300"
                           title="编辑作品"
                         >
                           <Edit className="w-4 h-4" />
@@ -695,7 +688,7 @@ export default function Home() {
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
                           onClick={() => handleDeleteProject(project.id, project.title)}
-                          className="flex items-center justify-center w-8 h-8 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg transition-all duration-300"
+                          className="flex items-center justify-center w-8 h-8 bg-rose-500/15 hover:bg-rose-500/25 text-rose-200 rounded-lg border border-rose-400/30 transition-all duration-300"
                           title="删除作品"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -709,7 +702,7 @@ export default function Home() {
                     whileTap={{ scale: 0.9 }}
                     onClick={() => handleVote(project.id)}
                     disabled={votingStates[project.id]}
-                    className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-300 hover:bg-red-50 group-vote ${
+                    className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-300 hover:bg-rose-500/10 border border-transparent group-vote ${
                       votingStates[project.id] ? 'opacity-50 cursor-not-allowed' : ''
                     }`}
                   >
@@ -721,16 +714,16 @@ export default function Home() {
                         <motion.div
                           animate={{ rotate: 360 }}
                           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                          className="w-5 h-5 border-2 border-red-300 border-t-red-500 rounded-full"
+                          className="w-5 h-5 border-2 border-rose-500/40 border-t-rose-400 rounded-full"
                         />
                       ) : project.hasVoted ? (
-                        <Heart className="w-5 h-5 text-red-500 fill-current" />
+                        <Heart className="w-5 h-5 text-rose-400 fill-current drop-shadow-[0_0_12px_rgba(248,113,113,0.4)]" />
                       ) : (
-                        <Heart className="w-5 h-5 text-gray-400 group-vote-hover:text-red-400" />
+                        <Heart className="w-5 h-5 text-slate-400 group-vote-hover:text-rose-400" />
                       )}
                     </motion.div>
                     <span className={`font-semibold text-sm ${
-                      project.hasVoted ? 'text-red-500' : 'text-gray-600 group-vote-hover:text-red-500'
+                      project.hasVoted ? 'text-rose-400' : 'text-slate-300 group-vote-hover:text-rose-400'
                     }`}>
                       {project.voteCount}
                     </span>
@@ -754,7 +747,7 @@ export default function Home() {
               whileTap={{ scale: 0.95 }}
               onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
               disabled={currentPage === 1}
-              className="flex items-center space-x-2 px-4 py-3 text-sm font-medium text-gray-600 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-xl hover:bg-white hover:border-blue-300 hover:text-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
+              className="flex items-center space-x-2 px-4 py-3 text-sm font-medium text-slate-200 bg-slate-900/70 border border-slate-800 rounded-xl hover:bg-slate-900/80 hover:border-cyan-500/40 hover:text-cyan-300 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300"
             >
               <span>上一页</span>
             </motion.button>
@@ -785,7 +778,7 @@ export default function Home() {
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
                       onClick={() => setCurrentPage(1)}
-                      className="w-12 h-12 text-sm font-semibold rounded-xl transition-all duration-300 text-gray-600 bg-white/80 backdrop-blur-sm border border-gray-200 hover:bg-white hover:border-blue-300 hover:text-blue-600"
+                      className="w-12 h-12 text-sm font-semibold rounded-xl transition-all duration-300 text-slate-300 bg-slate-900/70 border border-slate-800 hover:bg-slate-900/80 hover:border-cyan-500/40 hover:text-cyan-300"
                     >
                       1
                     </motion.button>
@@ -793,7 +786,7 @@ export default function Home() {
 
                   if (startPage > 2) {
                     pages.push(
-                      <span key="ellipsis1" className="flex items-center px-2 text-gray-400">
+                      <span key="ellipsis1" className="flex items-center px-2 text-slate-500">
                         ...
                       </span>
                     )
@@ -810,8 +803,8 @@ export default function Home() {
                       onClick={() => setCurrentPage(i)}
                       className={`w-12 h-12 text-sm font-semibold rounded-xl transition-all duration-300 ${
                         currentPage === i
-                          ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
-                          : 'text-gray-600 bg-white/80 backdrop-blur-sm border border-gray-200 hover:bg-white hover:border-blue-300 hover:text-blue-600'
+                          ? 'bg-gradient-to-r from-cyan-500 to-indigo-600 text-white shadow-[0_0_20px_rgba(34,211,238,0.3)]'
+                          : 'text-slate-300 bg-slate-900/70 border border-slate-800 hover:bg-slate-900/80 hover:border-cyan-500/40 hover:text-cyan-300'
                       }`}
                     >
                       {i}
@@ -823,7 +816,7 @@ export default function Home() {
                 if (endPage < totalPages) {
                   if (endPage < totalPages - 1) {
                     pages.push(
-                      <span key="ellipsis2" className="flex items-center px-2 text-gray-400">
+                      <span key="ellipsis2" className="flex items-center px-2 text-slate-500">
                         ...
                       </span>
                     )
@@ -835,7 +828,7 @@ export default function Home() {
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
                       onClick={() => setCurrentPage(totalPages)}
-                      className="w-12 h-12 text-sm font-semibold rounded-xl transition-all duration-300 text-gray-600 bg-white/80 backdrop-blur-sm border border-gray-200 hover:bg-white hover:border-blue-300 hover:text-blue-600"
+                      className="w-12 h-12 text-sm font-semibold rounded-xl transition-all duration-300 text-slate-300 bg-slate-900/70 border border-slate-800 hover:bg-slate-900/80 hover:border-cyan-500/40 hover:text-cyan-300"
                     >
                       {totalPages}
                     </motion.button>
@@ -851,7 +844,7 @@ export default function Home() {
               whileTap={{ scale: 0.95 }}
               onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
               disabled={currentPage === totalPages}
-              className="flex items-center space-x-2 px-4 py-3 text-sm font-medium text-gray-600 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-xl hover:bg-white hover:border-blue-300 hover:text-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
+              className="flex items-center space-x-2 px-4 py-3 text-sm font-medium text-slate-200 bg-slate-900/70 border border-slate-800 rounded-xl hover:bg-slate-900/80 hover:border-cyan-500/40 hover:text-cyan-300 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300"
             >
               <span>下一页</span>
             </motion.button>
@@ -864,7 +857,7 @@ export default function Home() {
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.6 }}
-            className="text-center py-20 px-8 rounded-2xl bg-white/60 backdrop-blur-sm border border-white/50 shadow-lg mx-auto max-w-md"
+            className="text-center py-20 px-8 rounded-2xl bg-slate-950/70 backdrop-blur-xl border border-cyan-500/15 shadow-[0_20px_50px_rgba(2,6,23,0.6)] mx-auto max-w-md text-slate-100"
           >
             <motion.div
               animate={{
@@ -880,10 +873,10 @@ export default function Home() {
             >
               🎨
             </motion.div>
-            <h3 className="text-2xl font-bold mb-4 bg-gradient-to-r from-gray-700 to-gray-500 bg-clip-text text-transparent">
+            <h3 className="text-2xl font-bold mb-4 bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent drop-shadow-[0_0_16px_rgba(34,211,238,0.3)]">
               暂无作品展示
             </h3>
-            <p className="text-gray-600 mb-6 leading-relaxed">
+            <p className="text-slate-300 mb-6 leading-relaxed">
               这个训练营还在等待第一个精彩作品的诞生，<br />
               也许下一个就是你的创意之作！
             </p>
@@ -891,7 +884,7 @@ export default function Home() {
               href="/upload"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="inline-flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-300 shadow-md hover:shadow-lg"
+              className="inline-flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 text-white font-semibold rounded-xl hover:from-cyan-400 hover:via-blue-500 hover:to-purple-500 transition-all duration-300 shadow-[0_14px_30px_rgba(2,6,23,0.6)] hover:shadow-[0_18px_40px_rgba(34,211,238,0.35)]"
             >
               <Star className="w-4 h-4" />
               <span>成为第一个</span>
