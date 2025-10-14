@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { ArrowLeft, ExternalLink, Heart, Share2, Award, Star, Copy, Check, Github, Calendar, User, Globe } from 'lucide-react'
 import { useRouter, useParams } from 'next/navigation'
 import toast from 'react-hot-toast'
+import SharePoster from '@/components/SharePoster'
 
 interface Project {
   id: string
@@ -39,6 +40,7 @@ export default function ProjectDetail() {
   const [votingState, setVotingState] = useState(false)
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [copied, setCopied] = useState(false)
+  const [showPoster, setShowPoster] = useState(false)
 
   useEffect(() => {
     if (params.id) {
@@ -185,29 +187,8 @@ export default function ProjectDetail() {
     }
   }
 
-  const shareProject = async () => {
-    const url = window.location.href
-
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: project?.title,
-          text: project?.description || '来看看这个精彩的AI编程作品！',
-          url: url
-        })
-      } catch (error) {
-        console.log('分享取消')
-      }
-    } else {
-      try {
-        await navigator.clipboard.writeText(url)
-        setCopied(true)
-        toast.success('链接已复制到剪贴板')
-        setTimeout(() => setCopied(false), 2000)
-      } catch (error) {
-        toast.error('复制链接失败')
-      }
-    }
+  const shareProject = () => {
+    setShowPoster(true)
   }
 
   if (loading) {
@@ -456,6 +437,15 @@ export default function ProjectDetail() {
           </motion.div>
         </div>
       </div>
+
+      {/* 分享海报 */}
+      {project && (
+        <SharePoster
+          isOpen={showPoster}
+          onClose={() => setShowPoster(false)}
+          project={project}
+        />
+      )}
     </div>
   )
 }
