@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from 'react'
 import { motion } from 'framer-motion'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { ArrowLeft, User, Star, Target, BarChart3, Mail, Edit, Trash2, ExternalLink, Upload, Heart } from 'lucide-react'
+import { ArrowLeft, User, Star, Target, BarChart3, Mail, Edit, Trash2, ExternalLink, Upload, Heart, Lock, KeyRound } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 interface User {
@@ -70,6 +70,12 @@ function ProfilePageContent() {
   const [totalFavoritePages, setTotalFavoritePages] = useState(0)
   const [editMode, setEditMode] = useState(false)
   const [editData, setEditData] = useState<Partial<User>>({})
+  const [showPasswordModal, setShowPasswordModal] = useState(false)
+  const [passwordData, setPasswordData] = useState({
+    oldPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  })
   const router = useRouter()
   const searchParams = useSearchParams()
   const targetUserId = searchParams.get('userId') // URL参数中的用户ID
@@ -235,6 +241,53 @@ function ProfilePageContent() {
     } catch (error) {
       console.error('Error deleting project:', error)
       toast.error('删除失败，请重试')
+    }
+  }
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    // 去除密码前后空格
+    const trimmedOldPassword = passwordData.oldPassword.trim()
+    const trimmedNewPassword = passwordData.newPassword.trim()
+    const trimmedConfirmPassword = passwordData.confirmPassword.trim()
+
+    // 验证新密码
+    if (trimmedNewPassword !== trimmedConfirmPassword) {
+      toast.error('两次输入的新密码不一致')
+      return
+    }
+
+    if (trimmedNewPassword.length < 6) {
+      toast.error('新密码至少需要6个字符')
+      return
+    }
+
+    try {
+      const response = await fetch('/api/auth/change-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          oldPassword: trimmedOldPassword,
+          newPassword: trimmedNewPassword
+        })
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        toast.success('密码修改成功！')
+        setShowPasswordModal(false)
+        setPasswordData({ oldPassword: '', newPassword: '', confirmPassword: '' })
+      } else {
+        toast.error(data.message || '修改密码失败')
+      }
+    } catch (error) {
+      console.error('Error changing password:', error)
+      toast.error('网络错误，请稍后重试')
     }
   }
 
@@ -478,17 +531,39 @@ function ProfilePageContent() {
               {/* 账户操作 */}
               {!targetUserId && (
                 <div className="mt-8 pt-6 border-t border-white/20">
-                  <div className="flex justify-between items-center">
+                  <div className="space-y-4">
                     <div>
-                      <h4 className="text-lg font-semibold text-white">账户操作</h4>
-                      <p className="text-white/60">管理你的账户设置</p>
+                      <h4 className="text-lg font-semibold text-white mb-1">账户操作</h4>
+                      <p className="text-white/60 text-sm">管理你的账户设置</p>
                     </div>
-                    <button
-                      onClick={logout}
-                      className="px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold rounded-xl transition-all"
-                    >
-                      退出登录
-                    </button>
+                    <div className="flex justify-between items-center bg-white/5 rounded-xl p-4 border border-white/10">
+                      <div>
+                        <h5 className="text-white font-medium mb-1 flex items-center gap-2">
+                          <Lock className="w-4 h-4" />
+                          修改密码
+                        </h5>
+                        <p className="text-white/60 text-sm">定期修改密码以保护账户安全</p>
+                      </div>
+                      <button
+                        onClick={() => setShowPasswordModal(true)}
+                        className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium rounded-lg transition-all flex items-center gap-2"
+                      >
+                        <KeyRound className="w-4 h-4" />
+                        修改密码
+                      </button>
+                    </div>
+                    <div className="flex justify-between items-center bg-white/5 rounded-xl p-4 border border-white/10">
+                      <div>
+                        <h5 className="text-white font-medium mb-1">退出登录</h5>
+                        <p className="text-white/60 text-sm">安全退出当前账户</p>
+                      </div>
+                      <button
+                        onClick={logout}
+                        className="px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-medium rounded-lg transition-all"
+                      >
+                        退出登录
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
@@ -805,6 +880,98 @@ function ProfilePageContent() {
           )}
         </motion.div>
       </div>
+
+      {/* 修改密码模态窗口 */}
+      {showPasswordModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-gradient-to-br from-purple-900/95 via-blue-900/95 to-indigo-900/95 backdrop-blur-md rounded-2xl p-6 w-full max-w-md border border-white/20"
+          >
+            <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+              <Lock className="w-6 h-6" />
+              修改密码
+            </h2>
+            <form onSubmit={handleChangePassword} className="space-y-4">
+              {/* 旧密码 */}
+              <div>
+                <label className="block text-white/90 font-medium mb-2">
+                  旧密码 *
+                </label>
+                <input
+                  type="password"
+                  required
+                  placeholder="请输入当前密码"
+                  value={passwordData.oldPassword}
+                  onChange={(e) => setPasswordData({ ...passwordData, oldPassword: e.target.value })}
+                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent backdrop-blur-sm"
+                />
+              </div>
+
+              {/* 新密码 */}
+              <div>
+                <label className="block text-white/90 font-medium mb-2">
+                  新密码 *
+                </label>
+                <input
+                  type="password"
+                  required
+                  placeholder="请输入新密码（至少6个字符）"
+                  value={passwordData.newPassword}
+                  onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent backdrop-blur-sm"
+                  minLength={6}
+                />
+              </div>
+
+              {/* 确认新密码 */}
+              <div>
+                <label className="block text-white/90 font-medium mb-2">
+                  确认新密码 *
+                </label>
+                <input
+                  type="password"
+                  required
+                  placeholder="请再次输入新密码"
+                  value={passwordData.confirmPassword}
+                  onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent backdrop-blur-sm"
+                  minLength={6}
+                />
+              </div>
+
+              <div className="text-sm text-white/60 bg-white/5 p-3 rounded-lg border border-white/10">
+                <p className="flex items-center gap-2">
+                  <span>💡</span>
+                  <span>密码至少需要6个字符，建议使用字母、数字和特殊字符的组合</span>
+                </p>
+              </div>
+
+              {/* 操作按钮 */}
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowPasswordModal(false)
+                    setPasswordData({ oldPassword: '', newPassword: '', confirmPassword: '' })
+                  }}
+                  className="flex-1 py-3 px-4 bg-white/10 hover:bg-white/20 text-white rounded-xl font-medium transition-colors border border-white/20"
+                >
+                  取消
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-3 px-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-xl font-medium transition-all flex items-center justify-center gap-2"
+                >
+                  <KeyRound className="w-4 h-4" />
+                  确认修改
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        </div>
+      )}
     </div>
   )
 }
