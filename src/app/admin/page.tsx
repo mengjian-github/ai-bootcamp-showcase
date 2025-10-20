@@ -75,6 +75,9 @@ export default function AdminPage() {
   const projectsPerPage = 10
   const [currentUserPage, setCurrentUserPage] = useState(1)
   const usersPerPage = 10
+  const [showPasswordModal, setShowPasswordModal] = useState(false)
+  const [editingUser, setEditingUser] = useState<User | null>(null)
+  const [newPassword, setNewPassword] = useState('')
 
   // 筛选和搜索状态
   const [projectFilters, setProjectFilters] = useState({
@@ -391,6 +394,54 @@ export default function AdminPage() {
     setShowForm(false)
     setEditingBootcamp(null)
     setFormData({ name: '', description: '', startDate: '', endDate: '', isActive: true })
+  }
+
+  const handleOpenPasswordModal = (user: User) => {
+    setEditingUser(user)
+    setNewPassword('')
+    setShowPasswordModal(true)
+  }
+
+  const handleClosePasswordModal = () => {
+    setShowPasswordModal(false)
+    setEditingUser(null)
+    setNewPassword('')
+  }
+
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editingUser) return
+
+    if (newPassword.length < 6) {
+      toast.error('密码至少需要6个字符')
+      return
+    }
+
+    const token = localStorage.getItem('token')
+    if (!token) return
+
+    try {
+      const response = await fetch(`/api/users/${editingUser.id}/password`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ newPassword })
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        toast.success(`成功修改用户 ${editingUser.nickname} 的密码`)
+        handleClosePasswordModal()
+      } else {
+        toast.error(data.message || '修改密码失败')
+      }
+    } catch (error) {
+      console.error('Error updating password:', error)
+      toast.error('修改密码失败，请重试')
+    }
   }
 
   const handleApproveProject = async (projectId: string, isApproved: boolean) => {
@@ -1113,6 +1164,12 @@ export default function AdminPage() {
                           >
                             查看详情
                           </button>
+                          <button
+                            onClick={() => handleOpenPasswordModal(user)}
+                            className="text-purple-600 hover:text-purple-900 font-medium"
+                          >
+                            修改密码
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -1291,6 +1348,52 @@ export default function AdminPage() {
                 <button
                   type="button"
                   onClick={handleCloseForm}
+                  className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400 transition-colors"
+                >
+                  取消
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showPasswordModal && editingUser && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4">修改用户密码</h2>
+            <div className="mb-4 p-3 bg-blue-50 rounded-md">
+              <div className="text-sm text-gray-700">
+                <p><span className="font-medium">用户昵称：</span>{editingUser.nickname}</p>
+                <p><span className="font-medium">星球编号：</span>{editingUser.planetNumber}</p>
+              </div>
+            </div>
+            <form onSubmit={handleUpdatePassword} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  新密码 *
+                </label>
+                <input
+                  type="password"
+                  required
+                  placeholder="请输入新密码（至少6个字符）"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  minLength={6}
+                />
+                <p className="mt-1 text-xs text-gray-500">密码长度至少为6个字符</p>
+              </div>
+              <div className="flex space-x-3">
+                <button
+                  type="submit"
+                  className="flex-1 bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 transition-colors"
+                >
+                  确认修改
+                </button>
+                <button
+                  type="button"
+                  onClick={handleClosePasswordModal}
                   className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400 transition-colors"
                 >
                   取消
