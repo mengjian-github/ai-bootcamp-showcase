@@ -41,7 +41,11 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (formData.password !== formData.confirmPassword) {
+    // 去除密码前后空格后再比较
+    const trimmedPassword = formData.password.trim()
+    const trimmedConfirmPassword = formData.confirmPassword.trim()
+
+    if (trimmedPassword !== trimmedConfirmPassword) {
       toast.error('密码确认不匹配，请重新输入')
       return
     }
@@ -56,11 +60,11 @@ export default function RegisterPage() {
         },
         body: JSON.stringify({
           nickname: formData.nickname,
-          planetNumber: formData.planetNumber,
+          planetNumber: formData.planetNumber.trim(),
           role: formData.role,
           skillLevel: formData.skillLevel,
           email: formData.email || null,
-          password: formData.password
+          password: trimmedPassword
         })
       })
 

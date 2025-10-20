@@ -24,8 +24,11 @@ export async function PUT(
     const body = await request.json()
     const { newPassword } = body
 
+    // 去除密码前后空格
+    const trimmedPassword = newPassword?.trim() || ''
+
     // 验证新密码
-    if (!newPassword || newPassword.length < 6) {
+    if (!trimmedPassword || trimmedPassword.length < 6) {
       return NextResponse.json(
         { message: '新密码至少需要6个字符' },
         { status: 400 }
@@ -46,7 +49,7 @@ export async function PUT(
     }
 
     // 加密新密码
-    const hashedPassword = await bcrypt.hash(newPassword, 12)
+    const hashedPassword = await bcrypt.hash(trimmedPassword, 12)
 
     // 更新用户密码
     await prisma.user.update({

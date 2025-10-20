@@ -8,8 +8,12 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { nickname, planetNumber, role, skillLevel, email, password } = body
 
+    // 去除账号和密码前后空格
+    const trimmedPlanetNumber = planetNumber?.trim() || ''
+    const trimmedPassword = password?.trim() || ''
+
     // 检查必填字段
-    if (!nickname || !planetNumber || !role || !skillLevel || !password) {
+    if (!nickname || !trimmedPlanetNumber || !role || !skillLevel || !trimmedPassword) {
       return NextResponse.json(
         { message: '请填写所有必填字段' },
         { status: 400 }
@@ -18,7 +22,7 @@ export async function POST(request: NextRequest) {
 
     // 检查星球编号是否已存在
     const existingUser = await prisma.user.findUnique({
-      where: { planetNumber }
+      where: { planetNumber: trimmedPlanetNumber }
     })
 
     if (existingUser) {
@@ -43,13 +47,13 @@ export async function POST(request: NextRequest) {
     }
 
     // 加密密码
-    const hashedPassword = await bcrypt.hash(password, 12)
+    const hashedPassword = await bcrypt.hash(trimmedPassword, 12)
 
     // 创建用户
     const user = await prisma.user.create({
       data: {
         nickname,
-        planetNumber,
+        planetNumber: trimmedPlanetNumber,
         role,
         skillLevel,
         email: email || null,

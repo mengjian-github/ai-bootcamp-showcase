@@ -7,9 +7,13 @@ export async function POST(request: NextRequest) {
   try {
     const { planetNumber, password } = await request.json()
 
+    // 去除账号和密码前后空格
+    const trimmedPlanetNumber = planetNumber?.trim() || ''
+    const trimmedPassword = password?.trim() || ''
+
     // 从数据库查找用户
     const user = await prisma.user.findUnique({
-      where: { planetNumber },
+      where: { planetNumber: trimmedPlanetNumber },
       select: {
         id: true,
         nickname: true,
@@ -30,7 +34,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 验证密码
-    const passwordMatch = await bcrypt.compare(password, user.password)
+    const passwordMatch = await bcrypt.compare(trimmedPassword, user.password)
     if (!passwordMatch) {
       return NextResponse.json(
         { message: '星球编号或密码错误' },

@@ -31,7 +31,10 @@ export default function LoginPage() {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify({
+          planetNumber: formData.planetNumber.trim(),
+          password: formData.password.trim()
+        })
       })
 
       const data = await response.json()

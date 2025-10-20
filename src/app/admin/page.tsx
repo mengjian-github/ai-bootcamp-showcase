@@ -412,7 +412,10 @@ export default function AdminPage() {
     e.preventDefault()
     if (!editingUser) return
 
-    if (newPassword.length < 6) {
+    // 去除密码前后空格
+    const trimmedPassword = newPassword.trim()
+
+    if (trimmedPassword.length < 6) {
       toast.error('密码至少需要6个字符')
       return
     }
@@ -427,7 +430,7 @@ export default function AdminPage() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ newPassword })
+        body: JSON.stringify({ newPassword: trimmedPassword })
       })
 
       const data = await response.json()
