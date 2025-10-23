@@ -36,7 +36,6 @@ export default function UploadPage() {
   const [coverImageFile, setCoverImageFile] = useState<File | null>(null)
   const [htmlFile, setHtmlFile] = useState<File | null>(null)
   const [coverImagePreview, setCoverImagePreview] = useState<string>('')
-  const [isAfterDeadline, setIsAfterDeadline] = useState(false)
 
   useEffect(() => {
     // 检查用户是否已登录
@@ -58,19 +57,7 @@ export default function UploadPage() {
     }
 
     fetchBootcamps()
-    checkDeadline()
   }, [])
-
-  const checkDeadline = async () => {
-    try {
-      const response = await fetch('/api/deadline')
-      const data = await response.json()
-      setIsAfterDeadline(data.isExpired)
-    } catch (error) {
-      console.error('Error checking deadline:', error)
-      setIsAfterDeadline(false)
-    }
-  }
 
   const fetchBootcamps = async () => {
     try {
@@ -148,12 +135,6 @@ export default function UploadPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
-    if (isAfterDeadline) {
-      toast.error('提交已截止，无法上传作品')
-      return
-    }
-
     setLoading(true)
 
     try {
@@ -443,18 +424,13 @@ export default function UploadPage() {
               </button>
               <button
                 type="submit"
-                disabled={loading || isAfterDeadline}
+                disabled={loading}
                 className="flex-1 py-3 px-6 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-xl font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {loading ? (
                   <>
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                     提交中...
-                  </>
-                ) : isAfterDeadline ? (
-                  <>
-                    <Save className="w-5 h-5" />
-                    提交已截止
                   </>
                 ) : (
                   <>

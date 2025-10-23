@@ -124,7 +124,7 @@ export default function DeadlineNotice() {
                 <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4">
                   <div className="flex items-center space-x-2">
                     <span className="text-white font-bold text-sm sm:text-base">
-                      {isExpired ? '提交和投票已截止' : '提交和投票截止时间'}
+                      {isExpired ? '投票已截止' : '投票截止时间'}
                     </span>
                     {!isExpired && (
                       <span className="text-white/90 text-sm sm:text-base">
