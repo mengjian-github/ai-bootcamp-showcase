@@ -101,13 +101,26 @@ export default function AdminPage() {
   })
   const router = useRouter()
 
+  // 角色转换函数
+  const getRoleLabel = (role: string): string => {
+    const roleMap: { [key: string]: string } = {
+      'ADMIN': '管理员',
+      'COACH': '教练',
+      'STAFF': '工作人员',
+      'ACTIONIST': '行动家',
+      'MEMBER': '圈友',
+      'VOLUNTEER': '志愿者'
+    }
+    return roleMap[role] || role
+  }
+
   // Excel导出功能
   const exportUsersToExcel = () => {
     // 准备Excel数据
     const excelData = filteredUsers.map(user => ({
       '用户昵称': user.nickname,
       '星球编号': user.planetNumber,
-      '角色': user.role,
+      '角色': getRoleLabel(user.role),
       '邮箱': user.email || '',
       '提交作品数': user._count?.projects || 0,
       '参与训练营': user.projects && user.projects.length > 0 ?
@@ -142,18 +155,17 @@ export default function AdminPage() {
   }
 
   const exportProjectsToExcel = () => {
-    // 准备Excel数据
+    // 准备Excel数据 - 按用户需求的字段顺序
     const excelData = filteredProjects.map(project => ({
-      '作品标题': project.title,
-      '作者昵称': project.author?.nickname || '',
-      '作者星球编号': project.author?.planetNumber || '',
-      '训练营': project.bootcamp?.name || '',
+      '作品名字': project.title,
+      '作品介绍': project.description || '',
+      '作者名字': project.author?.nickname || '',
+      '星球编号': project.author?.planetNumber || '',
+      '角色': getRoleLabel(project.author?.role || ''),
+      '所属训练营': project.bootcamp?.name || '',
       '作品类型': project.type === 'LINK' ? '链接' : 'HTML文件',
-      '项目链接': project.projectUrl || '',
-      '上传时间': project.createdAt ? new Date(project.createdAt).toLocaleDateString() : '',
-      '审核状态': project.isApproved ? '已审核' : '待审核',
-      '投票数': project.voteCount || 0,
-      '作品描述': project.description || ''
+      '链接': project.type === 'LINK' ? (project.projectUrl || '') : (project.htmlFile || ''),
+      '点赞数': project.voteCount || 0
     }))
 
     // 创建工作簿和工作表
@@ -163,16 +175,15 @@ export default function AdminPage() {
 
     // 设置列宽
     const colWidths = [
-      { wch: 25 }, // 作品标题
-      { wch: 15 }, // 作者昵称
-      { wch: 15 }, // 作者星球编号
-      { wch: 20 }, // 训练营
+      { wch: 25 }, // 作品名字
+      { wch: 40 }, // 作品介绍
+      { wch: 15 }, // 作者名字
+      { wch: 15 }, // 星球编号
+      { wch: 12 }, // 角色
+      { wch: 20 }, // 所属训练营
       { wch: 12 }, // 作品类型
-      { wch: 40 }, // 项目链接
-      { wch: 15 }, // 上传时间
-      { wch: 12 }, // 审核状态
-      { wch: 10 }, // 投票数
-      { wch: 30 }  // 作品描述
+      { wch: 40 }, // 链接
+      { wch: 10 }  // 点赞数
     ]
     worksheet['!cols'] = colWidths
 
