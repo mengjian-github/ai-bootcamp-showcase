@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { TrendingUp, Users, Award, Star, ExternalLink, Heart, Edit, Trash2, Search, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useRouter } from 'next/navigation'
+import DeadlineNotice from '@/components/DeadlineNotice'
 
 interface Bootcamp {
   id: string
@@ -326,6 +327,9 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(34,211,238,0.15),_rgba(2,6,23,0.95))]">
+      {/* Deadline Notice */}
+      <DeadlineNotice />
+
       {/* Enhanced Hero Section */}
       <motion.div
         initial={{ opacity: 0 }}

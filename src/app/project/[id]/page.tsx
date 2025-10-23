@@ -6,6 +6,7 @@ import { ArrowLeft, ExternalLink, Heart, Share2, Award, Star, Copy, Check, Githu
 import { useRouter, useParams } from 'next/navigation'
 import toast from 'react-hot-toast'
 import SharePoster from '@/components/SharePoster'
+import DeadlineNotice from '@/components/DeadlineNotice'
 
 interface Project {
   id: string
@@ -217,6 +218,9 @@ export default function ProjectDetail() {
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(34,211,238,0.15),_rgba(2,6,23,0.95))]">
+      {/* Deadline Notice */}
+      <DeadlineNotice />
+      
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* 返回按钮 */}
         <motion.button

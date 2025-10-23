@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Save, ArrowLeft, Upload, Link, FileText, Image } from 'lucide-react'
 import toast from 'react-hot-toast'
+import DeadlineNotice from '@/components/DeadlineNotice'
 
 interface Bootcamp {
   id: string
@@ -278,8 +279,11 @@ export default function EditProjectPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 py-8">
-      <div className="container mx-auto px-4 max-w-4xl">
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+      {/* Deadline Notice */}
+      <DeadlineNotice />
+      
+      <div className="container mx-auto px-4 max-w-4xl py-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

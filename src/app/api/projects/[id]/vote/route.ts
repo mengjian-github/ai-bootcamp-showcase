@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { isAfterDeadline } from '@/lib/deadline'
 import jwt from 'jsonwebtoken'
 import { randomUUID } from 'crypto'
 
@@ -8,6 +9,14 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
+    // 检查是否已超过截止时间
+    if (isAfterDeadline()) {
+      return NextResponse.json(
+        { message: '投票已截止，无法点赞' },
+        { status: 403 }
+      )
+    }
+
     const projectId = params.id
     const authHeader = request.headers.get('authorization')
     let voterId: string | null = null

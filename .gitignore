@@ -23,6 +23,14 @@
 # misc
 .DS_Store
 *.pem
+NUL
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
 
 # debug
 npm-debug.log*
@@ -43,7 +51,12 @@ next-env.d.ts
 # uploads
 /uploads/*
 !/uploads/.gitkeep
+/public/uploads/*
+!/public/uploads/.gitkeep
 
 # database
 /prisma/dev.db
 /prisma/dev.db-journal
+
+# Claude Code
+.claude/

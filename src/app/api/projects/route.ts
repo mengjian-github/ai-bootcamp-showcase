@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/auth'
+import { isAfterDeadline } from '@/lib/deadline'
 import { randomUUID } from 'crypto'
 
 export async function GET(request: NextRequest) {
@@ -136,6 +137,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { message: '登录已过期，请重新登录' },
         { status: 401 }
+      )
+    }
+
+    // 检查是否已超过截止时间
+    if (isAfterDeadline()) {
+      return NextResponse.json(
+        { message: '提交已截止，无法提交作品' },
+        { status: 403 }
       )
     }
 
