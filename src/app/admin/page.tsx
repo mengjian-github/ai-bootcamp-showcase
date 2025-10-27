@@ -165,7 +165,8 @@ export default function AdminPage() {
       '所属训练营': project.bootcamp?.name || '',
       '作品类型': project.type === 'LINK' ? '链接' : 'HTML文件',
       '链接': project.type === 'LINK' ? (project.projectUrl || '') : (project.htmlFile || ''),
-      '点赞数': project.voteCount || 0
+      '点赞数': project.voteCount || 0,
+      '上传时间': project.createdAt ? new Date(project.createdAt).toLocaleDateString() : ''
     }))
 
     // 创建工作簿和工作表
@@ -183,7 +184,8 @@ export default function AdminPage() {
       { wch: 20 }, // 所属训练营
       { wch: 12 }, // 作品类型
       { wch: 40 }, // 链接
-      { wch: 10 }  // 点赞数
+      { wch: 10 }, // 点赞数
+      { wch: 15 }  // 上传时间
     ]
     worksheet['!cols'] = colWidths
 
