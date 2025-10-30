@@ -78,6 +78,8 @@ export default function AdminPage() {
   const [showPasswordModal, setShowPasswordModal] = useState(false)
   const [editingUser, setEditingUser] = useState<User | null>(null)
   const [newPassword, setNewPassword] = useState('')
+  const [showPlanetNumberModal, setShowPlanetNumberModal] = useState(false)
+  const [newPlanetNumber, setNewPlanetNumber] = useState('')
 
   // 筛选和搜索状态
   const [projectFilters, setProjectFilters] = useState({
@@ -421,6 +423,18 @@ export default function AdminPage() {
     setNewPassword('')
   }
 
+  const handleOpenPlanetNumberModal = (user: User) => {
+    setEditingUser(user)
+    setNewPlanetNumber(user.planetNumber)
+    setShowPlanetNumberModal(true)
+  }
+
+  const handleClosePlanetNumberModal = () => {
+    setShowPlanetNumberModal(false)
+    setEditingUser(null)
+    setNewPlanetNumber('')
+  }
+
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!editingUser) return
@@ -457,6 +471,51 @@ export default function AdminPage() {
     } catch (error) {
       console.error('Error updating password:', error)
       toast.error('修改密码失败，请重试')
+    }
+  }
+
+  const handleUpdatePlanetNumber = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editingUser) return
+
+    // 去除星球编号前后空格
+    const trimmedPlanetNumber = newPlanetNumber.trim()
+
+    if (!trimmedPlanetNumber) {
+      toast.error('星球编号不能为空')
+      return
+    }
+
+    if (trimmedPlanetNumber === editingUser.planetNumber) {
+      toast.error('新的星球编号与原编号相同')
+      return
+    }
+
+    const token = localStorage.getItem('token')
+    if (!token) return
+
+    try {
+      const response = await fetch(`/api/users/${editingUser.id}/planet-number`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ newPlanetNumber: trimmedPlanetNumber })
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        toast.success(`成功修改用户 ${editingUser.nickname} 的星球编号`)
+        handleClosePlanetNumberModal()
+        fetchUsers() // 刷新用户列表
+      } else {
+        toast.error(data.message || '修改星球编号失败')
+      }
+    } catch (error) {
+      console.error('Error updating planet number:', error)
+      toast.error('修改星球编号失败，请重试')
     }
   }
 
@@ -1170,7 +1229,7 @@ export default function AdminPage() {
                         {new Date(user.createdAt).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <div className="flex space-x-2">
+                        <div className="flex flex-wrap gap-2">
                           <button
                             onClick={() => {
                               // 查看用户详情和作品列表
@@ -1179,6 +1238,12 @@ export default function AdminPage() {
                             className="text-blue-600 hover:text-blue-900 font-medium"
                           >
                             查看详情
+                          </button>
+                          <button
+                            onClick={() => handleOpenPlanetNumberModal(user)}
+                            className="text-green-600 hover:text-green-900 font-medium"
+                          >
+                            修改编号
                           </button>
                           <button
                             onClick={() => handleOpenPasswordModal(user)}
@@ -1411,6 +1476,51 @@ export default function AdminPage() {
                   type="button"
                   onClick={handleClosePasswordModal}
                   className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400 transition-colors"
+                >
+                  取消
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showPlanetNumberModal && editingUser && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
+            <h2 className="text-xl font-bold mb-4 text-gray-900">修改星球编号</h2>
+            <div className="mb-4 p-4 bg-green-100 border border-green-200 rounded-md">
+              <div className="text-sm text-gray-800">
+                <p className="mb-1"><span className="font-semibold text-gray-900">用户昵称：</span>{editingUser.nickname}</p>
+                <p><span className="font-semibold text-gray-900">当前星球编号：</span>{editingUser.planetNumber}</p>
+              </div>
+            </div>
+            <form onSubmit={handleUpdatePlanetNumber} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-900 mb-2">
+                  新星球编号 *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="请输入新的星球编号"
+                  value={newPlanetNumber}
+                  onChange={(e) => setNewPlanetNumber(e.target.value)}
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-gray-900 text-base"
+                />
+                <p className="mt-2 text-sm text-gray-700">星球编号必须唯一，不能与其他用户重复</p>
+              </div>
+              <div className="flex space-x-3 pt-2">
+                <button
+                  type="submit"
+                  className="flex-1 bg-green-600 text-white py-3 px-4 rounded-md hover:bg-green-700 transition-colors font-medium text-base"
+                >
+                  确认修改
+                </button>
+                <button
+                  type="button"
+                  onClick={handleClosePlanetNumberModal}
+                  className="flex-1 bg-gray-400 text-white py-3 px-4 rounded-md hover:bg-gray-500 transition-colors font-medium text-base"
                 >
                   取消
                 </button>
